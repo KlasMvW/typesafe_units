@@ -41,42 +41,37 @@ template<int... l>
 struct Coherent_unit_base
 {
   using Base = Coherent_unit_base<l...>;
-  Coherent_unit_base() {};
-  Coherent_unit_base(float v) : _base_value(v){}
-  Coherent_unit_base(const Coherent_unit_base<l...>& u) : _base_value(u.base_value()){}
+  constexpr Coherent_unit_base() {};
+  Coherent_unit_base(float v) : base_value(v){}
+  Coherent_unit_base(const Coherent_unit_base<l...>& u) : base_value(u.base_value){}
   
   template<int prefix, typename U, template<int, typename> typename Unit>
-  Coherent_unit_base(const Unit<prefix, U>, float value) : _base_value(value * U::base_multiplier * pow10<prefix>()){
-  }
-  
-  float base_value() const {
-    return _base_value;
+  Coherent_unit_base(const Unit<prefix, U>, float value) : base_value(value * U::base_multiplier * pow10<prefix>()){
   }
   
   static constexpr float base_multiplier = 1.0f;
-
-private:
-  float _base_value;
+  const float base_value{0.0f};
   
 };
 
 template<int m>
-struct T {
+struct Quantity {
   static constexpr int multiple = m;
 };
 
 template<int m>
-struct L {
-  static constexpr int multiple = m;
-};
+struct T : Quantity<m>{};
+
+template<int m>
+struct L : Quantity<m>{};
 
 template<typename Ty>
-concept Is_time = std::is_same<T<Ty::multiple>, Ty>::value;
+concept Is_time_multiple = std::is_same<T<Ty::multiple>, Ty>::value;
 
 template<typename Ty>
-concept Is_length = std::is_same<L<Ty::multiple>, Ty>::value;
+concept Is_length_multiple = std::is_same<L<Ty::multiple>, Ty>::value;
 
-template<Is_time A, Is_length B>
+template<Is_time_multiple A, Is_length_multiple B>
 struct Coherent_unit: Coherent_unit_base<A::multiple, B::multiple>{};
 
 struct Second : Coherent_unit<T<1>, L<0>>{};
@@ -104,25 +99,20 @@ static_assert(Hour::base_multiplier == 3600.0f);
 
 template<int to_prefix, typename To_unit, int from_prefix, typename From_unit, template<int, typename> typename Unit>
 typename std::enable_if_t<std::is_same<typename From_unit::Base, typename To_unit::Base>::value, Unit<to_prefix, To_unit>> convert(const Unit<from_prefix, From_unit>& d){
-  Unit<to_prefix, To_unit> to(d.base_value() / To_unit::base_multiplier * pow10<-to_prefix>());
+  Unit<to_prefix, To_unit> to(d.base_value / To_unit::base_multiplier * pow10<-to_prefix>());
   return to;
 }
 
 template<int prefix, typename U>
   struct Unit : U::Base {
-  Unit(float v) : U::Base(*this, v), _value(v){}
+  Unit(float v) : U::Base(*this, v), value(v){}
   
-  Unit(const typename U::Base& b) : U::Base(b), _value(b.base_value() / U::base_multiplier * pow10<-prefix>()){}
+  Unit(const typename U::Base& b) : U::Base(b), value(b.base_value / U::base_multiplier * pow10<-prefix>()){}
   
   template<typename V>
-  Unit(const V& v) : U::Base(*this, v.base_value()), _value(v.base_value() / U::base_multiplier * pow10<-prefix>()){}
-  
-  float value() const {
-      return _value;
-  }
+  Unit(const V& v) : U::Base(*this, v.base_value), value(v.base_value / U::base_multiplier * pow10<-prefix>()){}
 
-private:
-  float _value;
+  const float value{0.0f};
 };
 
 
@@ -130,14 +120,14 @@ private:
 template<int prefix, typename U>
 auto operator + (const Unit<prefix, U> l, const Unit<prefix, U> r)
 {
-  Unit<prefix, U> lr(l.value() + r.value());
+  Unit<prefix, U> lr(l.value + r.value);
   return lr; 
 }
 
 template<int prefix, typename U>
 auto operator - (const Unit<prefix, U> l, const Unit<prefix, U> r)
 {
-  Unit<prefix, U> lr(l.value() - r.value());
+  Unit<prefix, U> lr(l.value - r.value);
   return lr; 
 }
 
@@ -153,12 +143,12 @@ auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op o
 
 template<int L_first, int... L_args, int R_first, int... R_args, template<int, int...> typename L , template<int, int...> typename R, std::enable_if_t<sizeof...(L_args) == sizeof...(R_args)>* = nullptr>
 auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(), R<R_args...>(), L<L_first + R_first>(), std::plus<int>())){
-  return {l.base_value() * r.base_value()}; 
+  return {l.base_value * r.base_value}; 
 }
 
 template<int L_first, int... L_args, int R_first, int... R_args, template<int, int...> typename L , template<int, int...> typename R, std::enable_if_t<sizeof...(L_args) == sizeof...(R_args)>* = nullptr>
 auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(), R<R_args...>(), L<L_first - R_first>(), std::minus<int>())) {
-  return {l.base_value() / r.base_value()}; 
+  return {l.base_value / r.base_value}; 
 }
 
 template<int prefix_l, typename L, int prefix_r, typename R>
@@ -177,20 +167,20 @@ int main()
 {
     
     tu::Unit<tu::milli, tu::Second> a(1.0f);
-    std::cout << a.value() << " " << a.base_value() << std::endl;
+    std::cout << a.value << " " << a.base_value << std::endl;
     
     tu::Unit<tu::no_prefix, tu::Minute> b(2.0f);
-    std::cout << b.value() << " " << b.base_value() << std::endl;
+    std::cout << b.value << " " << b.base_value << std::endl;
     
     auto aa = tu::convert<0, tu::Hour>(a);
-    std::cout << aa.value() << " " << a.base_value() << std::endl;
+    std::cout << aa.value << " " << a.base_value << std::endl;
 
     auto aaa = a*a;
     
     auto bbb = a/a;
     
-    std::cout << aaa.base_value() << std::endl;
-    std::cout << bbb.base_value() << std::endl;
+    std::cout << aaa.base_value << std::endl;
+    std::cout << bbb.base_value << std::endl;
     
     
     tu::Unit<tu::milli, tu::Meter> m(4.0f);
@@ -201,8 +191,8 @@ int main()
     
     tu::Unit<0, tu::Meter_per_second> mmss(ms - ms);
     
-    std::cout << mms.value() << std::endl;
-    std::cout << mmss.value() << std::endl;
+    std::cout << mms.value << std::endl;
+    std::cout << mmss.value << std::endl;
     
     /////
     
@@ -219,11 +209,11 @@ int main()
     
     auto aba = AL* AR;
     //aba.print();
-    std::cout << aba.base_value() << std::endl;;
+    std::cout << aba.base_value << std::endl;;
     
     auto bab = AL / AR;
     //b.print();
     std::cout << std::endl;
-    std::cout << bab.base_value();
+    std::cout << bab.base_value;
     
 }
