@@ -23,6 +23,14 @@ constexpr int micro = -6;
 constexpr int mega = 6;
 constexpr int no_prefix = 0;
 
+
+/** 
+ * Returns compile time calculation of 10^exp.
+ * Examples:
+ *   pow10<3> retruns 1000.0f
+ *   pow10<-3> returns 0.001f
+ *   pow<0> retuens 1.0f
+ */ 
 template<int exp>
 constexpr float pow10()
 {
@@ -37,13 +45,38 @@ constexpr float pow10()
   }
 }
 
-template<int... l>
-struct Coherent_unit_base
-{
-  using Base = Coherent_unit_base<l...>;
+struct Unit_fundament{};
+
+/**
+ * Base struct for coherent units.
+ * The variadic int arguments simplifies binary operations of units.
+ * Direct use of this struct should be avoided in application code since it is
+ * not explicit what quantity each template argument represent.
+ * 
+ * Template arguments represents power (p) of SI quantities in the following
+ * order
+ * 
+ * <Time (s),
+ *  Length (m),
+ *  Mass (kg),
+ *  Electric current (A),
+ *  Thermodynamic temperature (K),
+ *  Amount of substance (mol),
+ *  Luminous intensity (cd))>
+ * 
+ * Example:
+ *   Coherent_unit_base<-1, 1, 0, 0, 0, 0, 0> represents the coherent SI unit
+ *   "meter per second".
+ *   
+ *   Coherent_unit_base<-2, 1, 1, 0, 0, 0, 0> represents the coherent SI unit
+ *   Newton (kg * m / s^2).   
+ */
+template<int... p>
+struct Coherent_unit_base : Unit_fundament{
+  using Base = Coherent_unit_base<p...>;
   constexpr Coherent_unit_base() {};
   Coherent_unit_base(float v) : base_value(v){}
-  Coherent_unit_base(const Coherent_unit_base<l...>& u) : base_value(u.base_value){}
+  Coherent_unit_base(const Coherent_unit_base<p...>& u) : base_value(u.base_value){}
   
   template<int prefix, typename U, template<int, typename> typename Unit>
   Coherent_unit_base(const Unit<prefix, U>, float value) : base_value(value * U::base_multiplier * pow10<prefix>()){
@@ -51,41 +84,80 @@ struct Coherent_unit_base
   
   static constexpr float base_multiplier = 1.0f;
   const float base_value{0.0f};
-  
 };
 
-template<int m>
-struct Quantity {
-  static constexpr int multiple = m;
+/**
+ * The struct represents a power of a base SI unit where the template
+ * argument `p` is the power. This is a convenience struct that gives all
+ * derived explicit units access to the template argument in terms of
+ * the constexpr int `power`.  
+ */
+template<int p>
+struct Base_unit {
+  static constexpr int power = p;
 };
 
-template<int m>
-struct T : Quantity<m>{};
+/**
+ * Struct representation of base unit s (second) with power p
+ */
+template<int p>
+struct s : Base_unit<p>{};
 
-template<int m>
-struct L : Quantity<m>{};
+/**
+ * Struct representation of base unit m (meter) with power p
+ */
+template<int p>
+struct m : Base_unit<p>{};
+
+/**
+ * Struct representation of base unit kg (kilo gram) with power p
+ */
+template<int p>
+struct kg : Base_unit<p>{};
+
+/**
+ * Definition of `concepts`to be able to constrain the templated definitions
+ * of coherent units  
+ */
+template<typename Ty>
+concept Second_power = std::is_same<s<Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Is_time_multiple = std::is_same<T<Ty::multiple>, Ty>::value;
+concept Meter_power = std::is_same<m<Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Is_length_multiple = std::is_same<L<Ty::multiple>, Ty>::value;
+concept Kilogram_power = std::is_same<m<Ty::power>, Ty>::value;
 
-template<Is_time_multiple A, Is_length_multiple B>
-struct Coherent_unit: Coherent_unit_base<A::multiple, B::multiple>{};
+/**
+ * Struct that represents a coherent unit.
+ * This can be more safely used than the base class since the template arguments
+ * are constrained types.
+ */
+template<Second_power T, Meter_power L>
+struct Coherent_unit: Coherent_unit_base<T::power, L::power>{};
 
-struct Second : Coherent_unit<T<1>, L<0>>{};
+/**
+ * Explicit definitions of coherent units 
+ */
+struct Second : Coherent_unit<s<1>, m<0>>{};
+struct Meter : Coherent_unit<s<0>, m<1>>{};
+struct Meter_per_second : Coherent_unit<s<-1>, m<1>>{};
 
-struct Meter : Coherent_unit<T<0>, L<1>>{};
-
-struct Meter_per_second : Coherent_unit<T<-1>, L<1>>{};
-
+/**
+ * Non-coherent units are coherent units with a prefix or conversion factor different from 1.0.
+ * The inheritance from Parent_unit only introduced to be able to constrain Parent_unit  
+ */
 template<float multiplier, typename Parent_unit>
-struct Non_coherent_unit
+requires std::derived_from<Parent_unit, Unit_fundament>
+struct Non_coherent_unit : Parent_unit
 {
   static constexpr float base_multiplier = Parent_unit::base_multiplier * multiplier;
   using Base = typename Parent_unit::Base;
 };
+
+/**
+ * Define Non coherent units
+ */
 
 struct Minute : Non_coherent_unit<60.0f, Second>{
   using Non_coherent_unit<60.0f, Second>::Base;
@@ -95,8 +167,14 @@ struct Hour : Non_coherent_unit<60.0f, Minute>{
   using Non_coherent_unit<60.0f, Minute>::Base;
 };
 
-static_assert(Hour::base_multiplier == 3600.0f);
 
+/**
+ * Express one unit with prefix in a different unit.
+ * Example:
+ *   Unit<no_prefix, Minute> m(1.0f);
+ *   Unit<milli, Second> s = tu::convert<milli, Second>(m);
+ *   std::cout << s.value // prints 60000.0
+ */
 template<int to_prefix, typename To_unit, int from_prefix, typename From_unit, template<int, typename> typename Unit>
 typename std::enable_if_t<std::is_same<typename From_unit::Base, typename To_unit::Base>::value, Unit<to_prefix, To_unit>> convert(const Unit<from_prefix, From_unit>& d){
   Unit<to_prefix, To_unit> to(d.base_value / To_unit::base_multiplier * pow10<-to_prefix>());
@@ -165,7 +243,7 @@ auto operator / (Unit<prefix_l, L> ul, Unit<prefix_r, R> ur) -> decltype(static_
 
 int main()
 {
-    
+    static_assert(tu::Hour::base_multiplier == 3600.0f);
     tu::Unit<tu::milli, tu::Second> a(1.0f);
     std::cout << a.value << " " << a.base_value << std::endl;
     
@@ -174,6 +252,10 @@ int main()
     
     auto aa = tu::convert<0, tu::Hour>(a);
     std::cout << aa.value << " " << a.base_value << std::endl;
+
+    tu::Unit<tu::no_prefix, tu::Minute> aaaa(1.0f);
+    auto bbbb = tu::convert<tu::milli, tu::Second>(aaaa);
+    std::cout << bbbb.value << std::endl;
 
     auto aaa = a*a;
     
