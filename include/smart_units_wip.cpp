@@ -81,7 +81,7 @@ struct Coherent_unit_base : Unit_fundament{
   Coherent_unit_base(float v) : base_value(v){}
   Coherent_unit_base(const Coherent_unit_base<p...>& u) : base_value(u.base_value){}
   
-  template<prefix pf, typename U, template<int, typename> typename Unit>
+  template<prefix pf, typename U, template<prefix, typename> typename Unit>
   Coherent_unit_base(const Unit<pf, U>, float value) : base_value(value * U::base_multiplier * pow10<(int)pf>()){
   }
   
@@ -189,6 +189,7 @@ typename std::enable_if_t<std::is_same<typename From_unit::Base, typename To_uni
  * Prefix is an enum class intrinsically converted to the underlying int. 
  */
 template<prefix pf, typename U>
+requires std::derived_from<U, Unit_fundament>
 struct Unit : U::Base {
   Unit(float v) : U::Base(*this, v), value(v){}
   
@@ -280,7 +281,7 @@ int main()
     
     tu::Unit<tu::prefix::milli, tu::Meter_per_second> mms(ms + ms);
     
-    tu::Unit<tu::prefix::no_prefix, tu::Meter_per_second> mmss(ms - ms);
+    tu::Unit<tu::prefix::no_prefix, tu::Meter_per_second> mmss = (ms - ms);
     
     std::cout << mms.value << std::endl;
     std::cout << mmss.value << std::endl;
