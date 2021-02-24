@@ -18,11 +18,14 @@
 
 namespace tu {
 
-constexpr int milli = -3;
-constexpr int micro = -6;
-constexpr int mega = 6;
-constexpr int no_prefix = 0;
-
+/**
+ * Prefixes used to define units.
+ */
+enum class prefix{micro = -6,
+                  milli = -3,
+                  no_prefix = 0,
+                  kilo = 3,
+                  mega = 6};
 
 /** 
  * Returns compile time calculation of 10^exp.
@@ -78,8 +81,8 @@ struct Coherent_unit_base : Unit_fundament{
   Coherent_unit_base(float v) : base_value(v){}
   Coherent_unit_base(const Coherent_unit_base<p...>& u) : base_value(u.base_value){}
   
-  template<int prefix, typename U, template<int, typename> typename Unit>
-  Coherent_unit_base(const Unit<prefix, U>, float value) : base_value(value * U::base_multiplier * pow10<prefix>()){
+  template<prefix pf, typename U, template<int, typename> typename Unit>
+  Coherent_unit_base(const Unit<pf, U>, float value) : base_value(value * U::base_multiplier * pow10<(int)pf>()){
   }
   
   static constexpr float base_multiplier = 1.0f;
@@ -175,37 +178,43 @@ struct Hour : Non_coherent_unit<60.0f, Minute>{
  *   Unit<milli, Second> s = tu::convert<milli, Second>(m);
  *   std::cout << s.value // prints 60000.0
  */
-template<int to_prefix, typename To_unit, int from_prefix, typename From_unit, template<int, typename> typename Unit>
+template<prefix to_prefix, typename To_unit, prefix from_prefix, typename From_unit, template<prefix, typename> typename Unit>
 typename std::enable_if_t<std::is_same<typename From_unit::Base, typename To_unit::Base>::value, Unit<to_prefix, To_unit>> convert(const Unit<from_prefix, From_unit>& d){
-  Unit<to_prefix, To_unit> to(d.base_value / To_unit::base_multiplier * pow10<-to_prefix>());
+  Unit<to_prefix, To_unit> to(d.base_value / To_unit::base_multiplier * pow10<-(int)to_prefix>());
   return to;
 }
 
-template<int prefix, typename U>
-  struct Unit : U::Base {
+/**
+ * Unit is the intended public unit class.
+ * Prefix is an enum class intrinsically converted to the underlying int. 
+ */
+template<prefix pf, typename U>
+struct Unit : U::Base {
   Unit(float v) : U::Base(*this, v), value(v){}
   
-  Unit(const typename U::Base& b) : U::Base(b), value(b.base_value / U::base_multiplier * pow10<-prefix>()){}
+  Unit(const typename U::Base& b) : U::Base(b), value(b.base_value / U::base_multiplier * pow10<-(int)pf>()){}
   
   template<typename V>
-  Unit(const V& v) : U::Base(*this, v.base_value), value(v.base_value / U::base_multiplier * pow10<-prefix>()){}
-
+  Unit(const V& v) : U::Base(*this, v.base_value), value(v.base_value / U::base_multiplier * pow10<-(int)pf>()){}
   const float value{0.0f};
 };
 
+/**
+ * Define binary operations +, -, *, and / for units.
+*/
 
 // Not passing references supposedly makes code like a+b+c more optimized.
-template<int prefix, typename U>
-auto operator + (const Unit<prefix, U> l, const Unit<prefix, U> r)
+template<prefix pf, typename U>
+auto operator + (const Unit<pf, U> l, const Unit<pf, U> r)
 {
-  Unit<prefix, U> lr(l.value + r.value);
+  Unit<pf, U> lr(l.value + r.value);
   return lr; 
 }
 
-template<int prefix, typename U>
-auto operator - (const Unit<prefix, U> l, const Unit<prefix, U> r)
+template<prefix pf, typename U>
+auto operator - (const Unit<pf, U> l, const Unit<pf, U> r)
 {
-  Unit<prefix, U> lr(l.value - r.value);
+  Unit<pf, U> lr(l.value - r.value);
   return lr; 
 }
 
@@ -229,13 +238,13 @@ auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(b
   return {l.base_value / r.base_value}; 
 }
 
-template<int prefix_l, typename L, int prefix_r, typename R>
-auto operator * (Unit<prefix_l, L> ul, Unit<prefix_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) * static_cast<typename decltype(ur)::Base&>(ur)){
+template<prefix pf_l, typename L, prefix pf_r, typename R>
+auto operator * (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) * static_cast<typename decltype(ur)::Base&>(ur)){
   return static_cast<typename decltype(ul)::Base&>(ul) * static_cast<typename decltype(ur)::Base&>(ur);
 }
 
-template<int prefix_l, typename L, int prefix_r, typename R>
-auto operator / (Unit<prefix_l, L> ul, Unit<prefix_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur)){
+template<prefix pf_l, typename L, prefix pf_r, typename R>
+auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur)){
   return static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur);
 }
 
@@ -244,17 +253,17 @@ auto operator / (Unit<prefix_l, L> ul, Unit<prefix_r, R> ur) -> decltype(static_
 int main()
 {
     static_assert(tu::Hour::base_multiplier == 3600.0f);
-    tu::Unit<tu::milli, tu::Second> a(1.0f);
+    tu::Unit<tu::prefix::milli, tu::Second> a(1.0f);
     std::cout << a.value << " " << a.base_value << std::endl;
     
-    tu::Unit<tu::no_prefix, tu::Minute> b(2.0f);
+    tu::Unit<tu::prefix::no_prefix, tu::Minute> b(2.0f);
     std::cout << b.value << " " << b.base_value << std::endl;
     
-    auto aa = tu::convert<0, tu::Hour>(a);
+    auto aa = tu::convert<tu::prefix::no_prefix, tu::Hour>(a);
     std::cout << aa.value << " " << a.base_value << std::endl;
 
-    tu::Unit<tu::no_prefix, tu::Minute> aaaa(1.0f);
-    auto bbbb = tu::convert<tu::milli, tu::Second>(aaaa);
+    tu::Unit<tu::prefix::no_prefix, tu::Minute> aaaa(1.0f);
+    auto bbbb = tu::convert<tu::prefix::milli, tu::Second>(aaaa);
     std::cout << bbbb.value << std::endl;
 
     auto aaa = a*a;
@@ -265,13 +274,13 @@ int main()
     std::cout << bbb.base_value << std::endl;
     
     
-    tu::Unit<tu::milli, tu::Meter> m(4.0f);
+    tu::Unit<tu::prefix::milli, tu::Meter> m(4.0f);
     
-    tu::Unit<tu::milli, tu::Meter_per_second> ms(m/a);
+    tu::Unit<tu::prefix::milli, tu::Meter_per_second> ms(m/a);
     
-    tu::Unit<tu::milli, tu::Meter_per_second> mms(ms + ms);
+    tu::Unit<tu::prefix::milli, tu::Meter_per_second> mms(ms + ms);
     
-    tu::Unit<0, tu::Meter_per_second> mmss(ms - ms);
+    tu::Unit<tu::prefix::no_prefix, tu::Meter_per_second> mmss(ms - ms);
     
     std::cout << mms.value << std::endl;
     std::cout << mmss.value << std::endl;
