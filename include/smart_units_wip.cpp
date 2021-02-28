@@ -355,7 +355,7 @@ template<int... l_args,
          template<int...> typename L_op_R,
          typename Op,
          typename std::enable_if_t<sizeof...(l_args) == 0 && sizeof...(r_args) == 0>* = nullptr>
-L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op op ){
+L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op){
   return {};
 }
 
