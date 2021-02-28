@@ -49,7 +49,7 @@ enum class prefix {
 // Examples:
 //   pow10<3> retruns 1000.0f
 //   pow10<-3> returns 0.001f
-//   pow<0> retuens 1.0f
+//   pow<0> returns 1.0f
 // 
 template<int exp>
 constexpr float pow10() {
@@ -70,8 +70,7 @@ constexpr float pow10() {
 // template arguments to derive from it. Empty base optimization ensures that
 // this construction does not come with any memory overhead.   
 // 
-struct Unit_fundament{
-};
+struct Unit_fundament{};
 
 // 
 // Base struct for coherent units.
@@ -98,7 +97,7 @@ struct Unit_fundament{
 //   Newton (kg * m / s^2).   
 // 
 template<int... p>
-struct Coherent_unit_base : Unit_fundament{
+struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
   constexpr Coherent_unit_base() {};
   Coherent_unit_base(float v) : base_value(v){}
@@ -107,10 +106,11 @@ struct Coherent_unit_base : Unit_fundament{
   template<prefix pf,
            typename U,
            template<prefix, typename> typename Unit>
-  Coherent_unit_base(const Unit<pf, U>, float value) : base_value(value * U::base_multiplier * pow10<(int)pf>()){
+  Coherent_unit_base(const Unit<pf, U>, float value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
   }
   
   static constexpr float base_multiplier = 1.0f;
+  static constexpr float base_add = 0.0f;
   const float base_value{0.0f};
 };
 
@@ -232,47 +232,61 @@ struct Gray: Coherent_unit<s<-2>, m<2>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 struct Sievert: Coherent_unit<s<-2>, m<2>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 struct Watt: Coherent_unit<s<-3>, m<2>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
 
-struct Degree_celsius: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
+//struct Degree_celsius: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 
-struct Newton: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Lux: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Radian: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Joule: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Steradian: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Katal: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Pascal: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Coulomb: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Henry: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Tesla: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Volt : Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Newton: Coherent_unit<s<-2>, m<1>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Lux: Coherent_unit<s<0>, m<-2>, kg<0>, A<0>, K<0>, mol<0>, cd<1>>{};
+struct Radian: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Joule: Coherent_unit<s<-2>, m<2>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Steradian: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Katal: Coherent_unit<s<-1>, m<0>, kg<0>, A<0>, K<0>, mol<1>, cd<0>>{};
+struct Pascal: Coherent_unit<s<-2>, m<-1>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Coulomb: Coherent_unit<s<1>, m<0>, kg<0>, A<1>, K<0>, mol<0>, cd<0>>{};
+struct Henry: Coherent_unit<s<-2>, m<2>, kg<1>, A<-2>, K<0>, mol<0>, cd<0>>{};
+struct Tesla: Coherent_unit<s<-2>, m<0>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
+struct Volt : Coherent_unit<s<-3>, m<2>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
 
 //
 // Derived coherent units
 //
 
-struct Meter_per_second : Coherent_unit<s<-1>, m<1>, kg<0>, A<0>, K<0>, mol<0>, cd<1>>{};
+struct Meter_per_second : Coherent_unit<s<-1>, m<1>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 
 // 
 // Non-coherent units are coherent units with a prefix or conversion factor different from 1.0.
 // The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit  
 // 
-template<float multiplier, typename Parent_unit>
+template<float multiplier, float add, typename Parent_unit>
 requires std::derived_from<Parent_unit, Unit_fundament>
 struct Non_coherent_unit : Parent_unit {
   static constexpr float base_multiplier = Parent_unit::base_multiplier * multiplier;
+  static constexpr float base_add = Parent_unit::base_add + add * multiplier;
   using Base = typename Parent_unit::Base;
 };
 
 // 
+
 // Define non coherent units
 // 
 
-struct Minute : Non_coherent_unit<60.0f, Second> {
-  using Non_coherent_unit<60.0f, Second>::Base;
+struct Minute : Non_coherent_unit<60.0f, 0.0f, Second> {
+  using Non_coherent_unit<60.0f, 0.0f, Second>::Base;
 };
 
-struct Hour : Non_coherent_unit<60.0f, Minute> {
-  using Non_coherent_unit<60.0f, Minute>::Base;
+struct Hour : Non_coherent_unit<60.0f, 0.0f, Minute> {
+  using Non_coherent_unit<60.0f, 0.0f, Minute>::Base;
+};
+
+struct Degree_celsius : Non_coherent_unit<1.0f, 273.15f, Kelvin> {
+  using Non_coherent_unit<1.0, 273.15f, Kelvin>::Base;
+};
+
+struct Degree_fahrenheit : Non_coherent_unit<1.0f/1.8f, -32.0f, Degree_celsius> {
+  using Non_coherent_unit<1.0f/1.8f, -32.0f, Degree_celsius>::Base;
+};
+
+struct Gram : Non_coherent_unit<0.001f, 0.0f, Kilogram> {
+  using Non_coherent_unit<0.001f, 0.0f, Kilogram>::Base;
 };
 
 
@@ -291,8 +305,8 @@ template<prefix to_prefix,
 typename std::enable_if_t<std::is_same<typename From_unit::Base,
                                        typename To_unit::Base>::value,
                                        Unit<to_prefix, To_unit>>
-convert_to(const Unit<from_prefix, From_unit>& d ){
-  Unit<to_prefix, To_unit> to(d.base_value / To_unit::base_multiplier * pow10<-(int)to_prefix>());
+convert_to(const Unit<from_prefix, From_unit>& from) {
+  Unit<to_prefix, To_unit> to((from.base_value  - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier);
   return to;
 }
 
@@ -305,10 +319,10 @@ requires std::derived_from<U, Unit_fundament>
 struct Unit : U::Base {
   Unit(float v) : U::Base(*this, v), value(v){}
   
-  Unit(const typename U::Base& b) : U::Base(b), value(b.base_value / U::base_multiplier * pow10<-(int)pf>()){}
+  Unit(const typename U::Base& b) : U::Base(b), value((b.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
   
   template<typename V>
-  Unit(const V& v) : U::Base(*this, v.base_value), value(v.base_value / U::base_multiplier * pow10<-(int)pf>()){}
+  Unit(const V& v) : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
   const float value{0.0f};
 };
 
@@ -466,6 +480,36 @@ int main()
     auto bab = AL / AR;
     //b.print();
     std::cout << std::endl;
-    std::cout << bab.base_value;
-    
+    std::cout << bab.base_value << std::endl;
+
+    tu::Unit<tu::prefix::no_prefix, tu::Kelvin> KKK(0.0f);
+
+    auto C = convert_to<tu::prefix::milli, tu::Degree_celsius>(KKK);
+    std::cout << C.value << std::endl;
+
+    auto F = convert_to<tu::prefix::no_prefix, tu::Degree_fahrenheit>(KKK);
+    std::cout << F.value << std::endl;
+
+    auto ABC = convert_to<tu::prefix::no_prefix, tu::Degree_celsius>(F);
+    std::cout << ABC.value << std::endl;
+
+    tu::Unit<tu::prefix::no_prefix, tu::Degree_celsius> CCC(0.0f);
+
+    //std::cout << "Hier " << CCC.base_multiplier << std::endl;
+    //std::cout << CCC.base_add << std::endl;
+    auto FF = convert_to<tu::prefix::no_prefix, tu::Degree_fahrenheit>(CCC);
+    std::cout << FF.value << std::endl;
+    //std::cout << FF.base_multiplier << std::endl;
+    //std::cout << FF.base_add << std::endl;
+//
+    //std::cout << "Mult: "<< tu::Degree_fahrenheit::base_multiplier << std::endl;
+    //std::cout << "Add: " << tu::Degree_fahrenheit::base_add  << std::endl;
+//
+    //    std::cout << "Mult: "<< tu::Degree_celsius::base_multiplier << std::endl;
+    //std::cout << "Add: " << tu::Degree_celsius::base_add  << std::endl;
+
+
+    tu::Unit<tu::prefix::no_prefix, tu::Degree_fahrenheit> FFF(0.0f);
+
+    //std::cout << FFF.base_value << std::endl;
 }
