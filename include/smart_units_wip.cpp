@@ -1,3 +1,11 @@
+//
+// TU_TYPE is the underlying unit data type 
+//
+
+#ifndef TU_TYPE
+#   define TU_TYPE float
+#endif
+
 #include <iostream>
 #include <type_traits>
 #include <functional>
@@ -52,7 +60,7 @@ enum class prefix {
 //   pow<0> returns 1.0f
 // 
 template<int exp>
-constexpr float pow10() {
+constexpr TU_TYPE pow10() {
   if constexpr(exp > 0) {
     return pow10<exp - 1>() * 10.0f;
   }
@@ -100,18 +108,18 @@ template<int... p>
 struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
   constexpr Coherent_unit_base() {};
-  Coherent_unit_base(float v) : base_value(v){}
+  Coherent_unit_base(TU_TYPE v) : base_value(v){}
   Coherent_unit_base(const Coherent_unit_base<p...>& u) : base_value(u.base_value){}
   
   template<prefix pf,
            typename U,
            template<prefix, typename> typename Unit>
-  Coherent_unit_base(const Unit<pf, U>, float value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
+  Coherent_unit_base(const Unit<pf, U>, TU_TYPE value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
   }
   
-  static constexpr float base_multiplier = 1.0f;
-  static constexpr float base_add = 0.0f;
-  const float base_value{0.0f};
+  static constexpr TU_TYPE base_multiplier = 1.0f;
+  static constexpr TU_TYPE base_add = 0.0f;
+  const TU_TYPE base_value{0.0f};
 };
 
 // 
@@ -256,11 +264,11 @@ struct Meter_per_second : Coherent_unit<s<-1>, m<1>, kg<0>, A<0>, K<0>, mol<0>, 
 // Non-coherent units are coherent units with a prefix or conversion factor different from 1.0.
 // The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit  
 // 
-template<float multiplier, float add, typename Parent_unit>
+template<TU_TYPE multiplier, TU_TYPE add, typename Parent_unit>
 requires std::derived_from<Parent_unit, Unit_fundament>
 struct Non_coherent_unit : Parent_unit {
-  static constexpr float base_multiplier = Parent_unit::base_multiplier * multiplier;
-  static constexpr float base_add = Parent_unit::base_add + add * multiplier;
+  static constexpr TU_TYPE base_multiplier = Parent_unit::base_multiplier * multiplier;
+  static constexpr TU_TYPE base_add = Parent_unit::base_add + add * multiplier;
   using Base = typename Parent_unit::Base;
 };
 
@@ -317,13 +325,14 @@ convert_to(const Unit<from_prefix, From_unit>& from) {
 template<prefix pf, typename U>
 requires std::derived_from<U, Unit_fundament>
 struct Unit : U::Base {
-  Unit(float v) : U::Base(*this, v), value(v){}
+  Unit(TU_TYPE v) : U::Base(*this, v), value(v){}
   
   Unit(const typename U::Base& b) : U::Base(b), value((b.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
   
   template<typename V>
+  requires std::derived_from<V, Unit_fundament>
   Unit(const V& v) : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
-  const float value{0.0f};
+  const TU_TYPE value{0.0f};
 };
 
 // 
@@ -424,10 +433,10 @@ auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typ
 int main()
 {
     static_assert(tu::Hour::base_multiplier == 3600.0f);
-    tu::Unit<tu::prefix::milli, tu::Second> a(1.0f);
+    tu::Unit<tu::prefix::milli, tu::Second> a(1.0);
     std::cout << a.value << " " << a.base_value << std::endl;
     
-    tu::Unit<tu::prefix::no_prefix, tu::Minute> b(2.0f);
+    tu::Unit<tu::prefix::no_prefix, tu::Minute> b(2.0);
     std::cout << b.value << " " << b.base_value << std::endl;
     
     auto c = a * b;
@@ -437,7 +446,7 @@ int main()
     auto aa = tu::convert_to<tu::prefix::no_prefix, tu::Hour>(a);
     std::cout << aa.value << " " << a.base_value << std::endl;
 
-    tu::Unit<tu::prefix::no_prefix, tu::Minute> aaaa(1.0f);
+    tu::Unit<tu::prefix::no_prefix, tu::Minute> aaaa(1.0);
     auto bbbb = tu::convert_to<tu::prefix::milli, tu::Second>(aaaa);
     std::cout << bbbb.value << std::endl;
 
@@ -449,7 +458,7 @@ int main()
     std::cout << bbb.base_value << std::endl;
     
     
-    tu::Unit<tu::prefix::milli, tu::Meter> m(4.0f);
+    tu::Unit<tu::prefix::milli, tu::Meter> m(4.0);
     
     tu::Unit<tu::prefix::milli, tu::Meter_per_second> ms(m/a);
     
@@ -482,7 +491,7 @@ int main()
     std::cout << std::endl;
     std::cout << bab.base_value << std::endl;
 
-    tu::Unit<tu::prefix::no_prefix, tu::Kelvin> KKK(0.0f);
+    tu::Unit<tu::prefix::no_prefix, tu::Kelvin> KKK(0.0);
 
     auto C = convert_to<tu::prefix::milli, tu::Degree_celsius>(KKK);
     std::cout << C.value << std::endl;
@@ -493,7 +502,7 @@ int main()
     auto ABC = convert_to<tu::prefix::no_prefix, tu::Degree_celsius>(F);
     std::cout << ABC.value << std::endl;
 
-    tu::Unit<tu::prefix::no_prefix, tu::Degree_celsius> CCC(0.0f);
+    tu::Unit<tu::prefix::no_prefix, tu::Degree_celsius> CCC(0.0);
 
     //std::cout << "Hier " << CCC.base_multiplier << std::endl;
     //std::cout << CCC.base_add << std::endl;
@@ -509,7 +518,7 @@ int main()
     //std::cout << "Add: " << tu::Degree_celsius::base_add  << std::endl;
 
 
-    tu::Unit<tu::prefix::no_prefix, tu::Degree_fahrenheit> FFF(0.0f);
+    tu::Unit<tu::prefix::no_prefix, tu::Degree_fahrenheit> FFF(0.0);
 
     //std::cout << FFF.base_value << std::endl;
 }
