@@ -28,7 +28,7 @@ namespace tu {
 /**
  * Prefixes used to define units.
  */
-enum class prefix {
+enum struct prefix {
   yocto = -24,
   zepto = -21,
   atto = -18,
