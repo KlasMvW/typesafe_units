@@ -72,6 +72,12 @@ constexpr TU_TYPE pow10() {
   }
 }
 
+template<TU_TYPE e>
+struct powexp{
+    constexpr powexp(){};
+    static constexpr TU_TYPE exp = e;
+};
+
 // 
 // Fundamental base class for all units.
 // Since unit classes are templated this class makes it possible to constrain
@@ -104,7 +110,7 @@ struct Unit_fundament{};
 //   Coherent_unit_base<-2, 1, 1, 0, 0, 0, 0> represents the coherent SI unit
 //   Newton (kg * m / s^2).   
 // 
-template<int... p>
+template<TU_TYPE... p>
 struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
   constexpr Coherent_unit_base() {};
@@ -128,51 +134,51 @@ struct Coherent_unit_base : Unit_fundament {
 // derived explicit units access to the template argument in terms of
 // the constexpr int `power`.  
 // 
-template<int p>
+template<TU_TYPE p>
 struct Base_unit {
-  static constexpr int power = p;
+  static constexpr TU_TYPE power = p;
 };
 
 // 
 // Struct representation of base unit s (second) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct s : Base_unit<p>{};
 
 // 
 // Struct representation of base unit m (meter) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct m : Base_unit<p>{};
 
 // 
 // Struct representation of base unit kg (kilogram) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct kg : Base_unit<p>{};
 
 // 
 // Struct representation of base unit A (ampere) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct A : Base_unit<p>{};
 
 // 
 // Struct representation of base unit K (kelvin) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct K : Base_unit<p>{};
 
 // 
 // Struct representation of base unit mol (mole) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct mol : Base_unit<p>{};
 
 // 
 // Struct representation of base unit cd (candela) with power p
 // 
-template<int p>
+template<TU_TYPE p>
 struct cd : Base_unit<p>{};
 
 // 
@@ -239,9 +245,6 @@ struct Weber: Coherent_unit<s<-2>, m<2>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
 struct Gray: Coherent_unit<s<-2>, m<2>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 struct Sievert: Coherent_unit<s<-2>, m<2>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 struct Watt: Coherent_unit<s<-3>, m<2>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
-
-//struct Degree_celsius: Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-
 struct Newton: Coherent_unit<s<-2>, m<1>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
 struct Lux: Coherent_unit<s<0>, m<-2>, kg<0>, A<0>, K<0>, mol<0>, cd<1>>{};
 struct Radian: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
@@ -259,6 +262,7 @@ struct Volt : Coherent_unit<s<-3>, m<2>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
 //
 
 struct Meter_per_second : Coherent_unit<s<-1>, m<1>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Second_squared : Coherent_unit<s<2>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
 
 // 
 // Non-coherent units are coherent units with a prefix or conversion factor different from 1.0.
@@ -314,8 +318,7 @@ typename std::enable_if_t<std::is_same<typename From_unit::Base,
                                        typename To_unit::Base>::value,
                                        Unit<to_prefix, To_unit>>
 convert_to(const Unit<from_prefix, From_unit>& from) {
-  Unit<to_prefix, To_unit> to((from.base_value  - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier);
-  return to;
+  return {(from.base_value  - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
 }
 
 // 
@@ -356,57 +359,57 @@ auto operator - (const Unit<pf, U> l, const Unit<pf, U> r)
   return lr; 
 }
 
-template<int... l_args,
-         template<int...> typename L,
-         int... r_args,
-         template<int...> typename R,
-         int... lr_args,
-         template<int...> typename L_op_R,
+template<TU_TYPE... l_args,
+         template<TU_TYPE...> typename L,
+         TU_TYPE... r_args,
+         template<TU_TYPE...> typename R,
+         TU_TYPE... lr_args,
+         template<TU_TYPE...> typename L_op_R,
          typename Op,
          typename std::enable_if_t<sizeof...(l_args) == 0 && sizeof...(r_args) == 0>* = nullptr>
 L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op){
   return {};
 }
 
-template<int lf,
-         int... l_args,
-         template<int, int...> typename L,
-         int rf,
-         int... r_args,
-         template<int, int...> typename R,
-         int... lr_args,
-         template<int...> typename L_op_R,
+template<TU_TYPE lf,
+         TU_TYPE... l_args,
+         template<TU_TYPE, TU_TYPE...> typename L,
+         TU_TYPE rf,
+         TU_TYPE... r_args,
+         template<TU_TYPE, TU_TYPE...> typename R,
+         TU_TYPE... lr_args,
+         template<TU_TYPE...> typename L_op_R,
          typename Op,
          typename std::enable_if_t<sizeof...(l_args) == sizeof...(r_args)>* = nullptr>
 auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) {
-  return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf,rf)>(), op);
+  return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
 }
 
-template<int L_first,
-         int... L_args,
-         int R_first,
-         int... R_args,
-         template<int, int...> typename L,
-         template<int, int...> typename R,
+template<TU_TYPE L_first,
+         TU_TYPE... L_args,
+         TU_TYPE R_first,
+         TU_TYPE... R_args,
+         template<TU_TYPE, TU_TYPE...> typename L,
+         template<TU_TYPE, TU_TYPE...> typename R,
          std::enable_if_t<sizeof...(L_args) == sizeof...(R_args)>* = nullptr>
 auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(),
                                                                                               R<R_args...>(),
                                                                                               L<L_first + R_first>(),
-                                                                                              std::plus<int>())) {
+                                                                                              std::plus<TU_TYPE>())) {
   return {l.base_value * r.base_value}; 
 }
 
-template<int L_first,
-         int... L_args,
-         int R_first,
-         int... R_args,
-         template<int, int...> typename L,
-         template<int, int...> typename R,
+template<TU_TYPE L_first,
+         TU_TYPE... L_args,
+         TU_TYPE R_first,
+         TU_TYPE... R_args,
+         template<TU_TYPE, TU_TYPE...> typename L,
+         template<TU_TYPE, TU_TYPE...> typename R,
          std::enable_if_t<sizeof...(L_args) == sizeof...(R_args)>* = nullptr>
 auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(),
                                                                                               R<R_args...>(),
                                                                                               L<L_first - R_first>(),
-                                                                                              std::minus<int>())) {
+                                                                                              std::minus<TU_TYPE>())) {
   return {l.base_value / r.base_value}; 
 }
 
@@ -424,8 +427,53 @@ template<prefix pf_l,
          prefix pf_r,
          typename R>
 auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) /
-                                                                 static_cast<typename decltype(ur)::Base&>(ur)){
+                                                                 static_cast<typename decltype(ur)::Base&>(ur)) {
   return static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur);
+}
+
+template<TU_TYPE... U_args,
+         template<TU_TYPE...> typename U,
+         TU_TYPE... U_op_args,
+         template<TU_TYPE...> typename U_op,
+         TU_TYPE n,
+         template<TU_TYPE> typename Num,
+         typename Op,
+         typename std::enable_if_t<sizeof...(U_args) == 0>* = nullptr>
+U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n> ,U_op<U_op_args...>, Op){
+  return {};
+}
+
+template<TU_TYPE U_first,
+         TU_TYPE... U_args,
+         template<TU_TYPE, TU_TYPE...> typename U,
+         TU_TYPE... U_op_args,
+         template<TU_TYPE...> typename U_op,
+         TU_TYPE n,
+         template<TU_TYPE> typename Num,
+         typename Op>
+auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op op){
+  return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
+}
+
+template<TU_TYPE U_first,
+         TU_TYPE... U_args,
+         template<TU_TYPE, TU_TYPE...> typename U,
+         TU_TYPE exp,
+         template<TU_TYPE> typename Exp>
+auto pow(U<U_first, U_args...> u, Exp<exp>) -> decltype(binary_op_args_num(U<U_args...>(),
+                                                                              Exp<exp>(),
+                                                                              U<U_first * exp>(),
+                                                                              std::multiplies<TU_TYPE>())) {
+  return {std::pow(u.base_value, exp)};
+}
+
+template<TU_TYPE exp,
+         prefix pf,
+         typename U>
+auto pow(Unit<pf, U> u) -> decltype(pow(static_cast<typename decltype(u)::Base&>(u), powexp<exp>())) {
+  
+  return pow(static_cast<typename decltype(u)::Base&>(u), powexp<exp>());
+
 }
 
 } // namespace tu
@@ -438,6 +486,10 @@ int main()
     
     tu::Unit<tu::prefix::no_prefix, tu::Minute> b(2.0);
     std::cout << b.value << " " << b.base_value << std::endl;
+
+    tu::Unit<tu::prefix::milli, tu::Second_squared> asdf = tu::pow<2.0f>(b);
+
+    std::cout << "HÄR: " << asdf.value << std::endl;
     
     auto c = a * b;
 
@@ -479,7 +531,7 @@ int main()
     
     tu::Coherent_unit_base<1,2,3,4,5,6,7,8> BB;
     
-    binary_op_args(AR, AL, AL, std::plus<int>());
+    binary_op_args(AR, AL, AL, std::plus<TU_TYPE>());
     
     
     auto aba = AL* AR;
