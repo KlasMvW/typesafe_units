@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <functional>
 #include <utility>
+#include <cmath>
 
 // Initialize type safe units
 // Unit<milli, Meter> length(5.0f)
@@ -72,6 +73,10 @@ constexpr TU_TYPE pow10() {
   }
 }
 
+//
+// Convenience struct to wrap a float representing an exponent in a template argument.
+// This makes it possibel to deduce the exponent argument from a function parameter.
+//
 template<TU_TYPE e>
 struct powexp{
     constexpr powexp(){};
@@ -431,6 +436,16 @@ auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typ
   return static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur);
 }
 
+//
+// Define mathematical operation:
+// pow<float exp>(Unit)
+//
+
+//
+// Apply a binary operation Op recusively to every template argument of U and a number n. 
+// Given U<a, b, c> and the number n, the returned type of the operation is U<Op(a,n), Op(b,n), Op(c,n)> 
+//
+
 template<TU_TYPE... U_args,
          template<TU_TYPE...> typename U,
          TU_TYPE... U_op_args,
@@ -439,7 +454,7 @@ template<TU_TYPE... U_args,
          template<TU_TYPE> typename Num,
          typename Op,
          typename std::enable_if_t<sizeof...(U_args) == 0>* = nullptr>
-U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n> ,U_op<U_op_args...>, Op){
+U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op){
   return {};
 }
 
@@ -455,6 +470,10 @@ auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op
   return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
 }
 
+//
+// Use the `binary_op_args_num` template functions to perform pow<TU_TYPE>(U<TU_TYPE...>).
+// Binary operation is std::multiplies<TU_TYPES>. 
+//
 template<TU_TYPE U_first,
          TU_TYPE... U_args,
          template<TU_TYPE, TU_TYPE...> typename U,
@@ -467,13 +486,24 @@ auto pow(U<U_first, U_args...> u, Exp<exp>) -> decltype(binary_op_args_num(U<U_a
   return {std::pow(u.base_value, exp)};
 }
 
+//
+// Template function for pow<TU_TYPE exp>(Unit<prefix, U>) returning the underlying "coherent" unit U::Base<a * exp, b * exp...>
+//
 template<TU_TYPE exp,
          prefix pf,
          typename U>
 auto pow(Unit<pf, U> u) -> decltype(pow(static_cast<typename decltype(u)::Base&>(u), powexp<exp>())) {
-  
   return pow(static_cast<typename decltype(u)::Base&>(u), powexp<exp>());
+}
 
+
+//
+// sqrt for struct Unit.
+//
+template<prefix pf,
+         typename U>
+auto sqrt(Unit<pf, U> u) {
+    return pow<0.5f>(u);
 }
 
 } // namespace tu
@@ -489,7 +519,9 @@ int main()
 
     tu::Unit<tu::prefix::milli, tu::Second_squared> asdf = tu::pow<2.0f>(b);
 
-    std::cout << "HÄR: " << asdf.value << std::endl;
+    std::cout << "HIER: " << asdf.value << std::endl;
+
+    std::cout << "HIE2 " << tu::sqrt(asdf).base_value << std::endl;
     
     auto c = a * b;
 
