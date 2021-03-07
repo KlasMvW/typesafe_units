@@ -323,7 +323,7 @@ typename std::enable_if_t<std::is_same<typename From_unit::Base,
                                        typename To_unit::Base>::value,
                                        Unit<to_prefix, To_unit>>
 convert_to(const Unit<from_prefix, From_unit>& from) {
-  return {(from.base_value  - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
+  return {(from.base_value - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
 }
 
 // 
@@ -474,15 +474,15 @@ auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op
 // Use the `binary_op_args_num` template functions to perform pow<TU_TYPE>(U<TU_TYPE...>).
 // Binary operation is std::multiplies<TU_TYPES>. 
 //
-template<TU_TYPE U_first,
+template<TU_TYPE exp,
+         TU_TYPE U_first,
          TU_TYPE... U_args,
-         template<TU_TYPE, TU_TYPE...> typename U,
-         TU_TYPE exp,
-         template<TU_TYPE> typename Exp>
-auto pow(U<U_first, U_args...> u, Exp<exp>) -> decltype(binary_op_args_num(U<U_args...>(),
-                                                                              Exp<exp>(),
-                                                                              U<U_first * exp>(),
-                                                                              std::multiplies<TU_TYPE>())) {
+         template<TU_TYPE, TU_TYPE...> typename U>
+requires std::derived_from<U<U_args...>, Unit_fundament>
+auto pow(U<U_first, U_args...> u) -> decltype(binary_op_args_num(U<U_args...>(),
+                                                                 powexp<exp>(),
+                                                                 U<U_first * exp>(),
+                                                                 std::multiplies<TU_TYPE>())) {
   return {std::pow(u.base_value, exp)};
 }
 
@@ -492,8 +492,9 @@ auto pow(U<U_first, U_args...> u, Exp<exp>) -> decltype(binary_op_args_num(U<U_a
 template<TU_TYPE exp,
          prefix pf,
          typename U>
-auto pow(Unit<pf, U> u) -> decltype(pow(static_cast<typename decltype(u)::Base&>(u), powexp<exp>())) {
-  return pow(static_cast<typename decltype(u)::Base&>(u), powexp<exp>());
+requires std::derived_from<U, Unit_fundament>
+auto pow(Unit<pf, U> u) -> decltype(pow<exp>(static_cast<typename decltype(u)::Base&>(u))) {
+  return pow<exp>(static_cast<typename decltype(u)::Base&>(u));
 }
 
 
@@ -502,107 +503,20 @@ auto pow(Unit<pf, U> u) -> decltype(pow(static_cast<typename decltype(u)::Base&>
 //
 template<prefix pf,
          typename U>
+requires std::derived_from<U, Unit_fundament>
 auto sqrt(Unit<pf, U> u) {
     return pow<0.5f>(u);
 }
 
-} // namespace tu
 
-int main()
-{
-    static_assert(tu::Hour::base_multiplier == 3600.0f);
-    tu::Unit<tu::prefix::milli, tu::Second> a(1.0);
-    std::cout << a.value << " " << a.base_value << std::endl;
-    
-    tu::Unit<tu::prefix::no_prefix, tu::Minute> b(2.0);
-    std::cout << b.value << " " << b.base_value << std::endl;
-
-    tu::Unit<tu::prefix::milli, tu::Second_squared> asdf = tu::pow<2.0f>(b);
-
-    std::cout << "HIER: " << asdf.value << std::endl;
-
-    std::cout << "HIE2 " << tu::sqrt(asdf).base_value << std::endl;
-    
-    auto c = a * b;
-
-    auto d = a/b;
-
-    auto aa = tu::convert_to<tu::prefix::no_prefix, tu::Hour>(a);
-    std::cout << aa.value << " " << a.base_value << std::endl;
-
-    tu::Unit<tu::prefix::no_prefix, tu::Minute> aaaa(1.0);
-    auto bbbb = tu::convert_to<tu::prefix::milli, tu::Second>(aaaa);
-    std::cout << bbbb.value << std::endl;
-
-    auto aaa = a*a;
-    
-    auto bbb = a/a;
-    
-    std::cout << aaa.base_value << std::endl;
-    std::cout << bbb.base_value << std::endl;
-    
-    
-    tu::Unit<tu::prefix::milli, tu::Meter> m(4.0);
-    
-    tu::Unit<tu::prefix::milli, tu::Meter_per_second> ms(m/a);
-    
-    tu::Unit<tu::prefix::milli, tu::Meter_per_second> mms(ms + ms);
-    
-    tu::Unit<tu::prefix::no_prefix, tu::Meter_per_second> mmss = (ms - ms);
-    
-    std::cout << mms.value << std::endl;
-    std::cout << mmss.value << std::endl;
-    
-    /////
-    
-    tu::Coherent_unit_base<1,2,3,4,5,6> AL(2);
-    //AL.value = 2;
-    tu::Coherent_unit_base<6,7,8,9,10,8> AR(3);
-    //AR.value = 3;
-    
-    
-    tu::Coherent_unit_base<1,2,3,4,5,6,7,8> BB;
-    
-    binary_op_args(AR, AL, AL, std::plus<TU_TYPE>());
-    
-    
-    auto aba = AL* AR;
-    //aba.print();
-    std::cout << aba.base_value << std::endl;;
-    
-    auto bab = AL / AR;
-    //b.print();
-    std::cout << std::endl;
-    std::cout << bab.base_value << std::endl;
-
-    tu::Unit<tu::prefix::no_prefix, tu::Kelvin> KKK(0.0);
-
-    auto C = convert_to<tu::prefix::milli, tu::Degree_celsius>(KKK);
-    std::cout << C.value << std::endl;
-
-    auto F = convert_to<tu::prefix::no_prefix, tu::Degree_fahrenheit>(KKK);
-    std::cout << F.value << std::endl;
-
-    auto ABC = convert_to<tu::prefix::no_prefix, tu::Degree_celsius>(F);
-    std::cout << ABC.value << std::endl;
-
-    tu::Unit<tu::prefix::no_prefix, tu::Degree_celsius> CCC(0.0);
-
-    //std::cout << "Hier " << CCC.base_multiplier << std::endl;
-    //std::cout << CCC.base_add << std::endl;
-    auto FF = convert_to<tu::prefix::no_prefix, tu::Degree_fahrenheit>(CCC);
-    std::cout << FF.value << std::endl;
-    //std::cout << FF.base_multiplier << std::endl;
-    //std::cout << FF.base_add << std::endl;
 //
-    //std::cout << "Mult: "<< tu::Degree_fahrenheit::base_multiplier << std::endl;
-    //std::cout << "Add: " << tu::Degree_fahrenheit::base_add  << std::endl;
+// sqrt for struct Coherent_unit<> or similar.
 //
-    //    std::cout << "Mult: "<< tu::Degree_celsius::base_multiplier << std::endl;
-    //std::cout << "Add: " << tu::Degree_celsius::base_add  << std::endl;
-
-
-    tu::Unit<tu::prefix::no_prefix, tu::Degree_fahrenheit> FFF(0.0);
-
-    //std::cout << FFF.base_value << std::endl;
+template<TU_TYPE... U_args,
+         template<TU_TYPE...> typename U>
+requires std::derived_from<U<U_args...>, Unit_fundament>
+auto sqrt(U<U_args...> u){
+  return pow<0.5f>(u);
 }
+
+} // namespace tu
