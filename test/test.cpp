@@ -1,7 +1,42 @@
 #include "tu/typesafe_units.h"
 
+using namespace tu;
+
+void test_pow10() {
+  static_assert(pow10<-2>() == (TU_TYPE)0.01);
+  static_assert(pow10<-1>() == (TU_TYPE)0.1);
+  static_assert(pow10<0>() == (TU_TYPE)1.0);
+  static_assert(pow10<1>() == (TU_TYPE)10.0);
+  static_assert(pow10<2>() == (TU_TYPE)100.0);
+
+  static_assert(pow10<-2>() != (TU_TYPE)1);
+  static_assert(pow10<-1>() != (TU_TYPE)1);
+  static_assert(pow10<0>() != (TU_TYPE)0);
+  static_assert(pow10<1>() != (TU_TYPE)1);
+  static_assert(pow10<2>() != (TU_TYPE)1);
+}
+
+void test_powexp() {
+  static_assert(powexp<-2>::exp == -2);
+  static_assert(powexp<-1>::exp == -1);
+  static_assert(powexp<0>::exp == 0);
+  static_assert(powexp<1>::exp == 1);
+  static_assert(powexp<2>::exp == 2);
+
+  static_assert(powexp<-2>::exp != 1);
+  static_assert(powexp<-1>::exp != 1);
+  static_assert(powexp<0>::exp != 1);
+  static_assert(powexp<1>::exp != 0);
+  static_assert(powexp<2>::exp != 1);
+
+}
+
 int main()
 {
+    test_pow10();
+    test_powexp();
+
+
     static_assert(tu::Hour::base_multiplier == 3600.0f);
     tu::Unit<tu::prefix::milli, tu::Second> a(1.0);
     std::cout << a.value << " " << a.base_value << std::endl;
