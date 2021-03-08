@@ -78,8 +78,8 @@ constexpr TU_TYPE pow10() {
 // This makes it possibel to deduce the exponent argument from a function parameter.
 //
 template<TU_TYPE e>
-struct powexp{
-    constexpr powexp(){};
+struct powexp {
+    constexpr powexp() {};
     static constexpr TU_TYPE exp = e;
 };
 
