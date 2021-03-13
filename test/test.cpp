@@ -13,8 +13,6 @@
 #define SUCCESS "\033[32m"
 #define RESET "\033[m"
 
-const std::string not_equal{" != "};
-
 using namespace tu;
 
 struct Fail: std::exception
@@ -29,39 +27,27 @@ void assert(const T& l, const T& r, int line) {
   if (!op(l, r)) {
       std::stringstream s;
       if (std::is_same_v<Op, std::equal_to<T>>) {
-        s << "FAIL: assert_equal line " << line << " " << l << not_equal << r;
+        s << "FAIL: assert_equal. Line " << line << ". " << l << " != " << r;
+      } else
+      if (std::is_same_v<Op, near<T>>) {
+        s << "FAIL: assert_near. Line " << line << ". " << l << " not near " << r;
       }
       throw Fail(s.str());
   }
 }
 
-template<typename L, typename R>
-void assert_equal(L&& l, R&& r, int line) {
-  if (l != r) {
-      std::stringstream s;
-      s << "FAIL: assert_equal line " << line << " " << l << " != " << r;
-      throw Fail(s.str());
+template<class T = TU_TYPE>
+struct near {
+  constexpr bool operator()(const T &l, const T &r) const {
+  // Code from https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
+  // The machine epsilon has to be scaled to the magnitude of the values used
+  // and multiplied by the desired precision in ULPs (units in the last place)
+  // unless the result is subnormal.
+  const int ulp = 10;
+  return (std::fabs(l - r) <= std::numeric_limits<T>::epsilon() * std::fabs(l + r) * ulp
+          || std::fabs(l - r) < std::numeric_limits<T>::min());
   }
-}
-
-template<class T>
-typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
-    assert_near(const T l, const T r, int ulp, int line)
-{
-    // Code from https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-    // The machine epsilon has to be scaled to the magnitude of the values used
-    // and multiplied by the desired precision in ULPs (units in the last place)
-    // unless the result is subnormal
-    if (!(std::fabs(l - r) <= std::numeric_limits<T>::epsilon() * std::fabs(l + r) * ulp
-        || std::fabs(l - r) < std::numeric_limits<T>::min())) {
-      std::stringstream s;
-      s.precision(ulp);
-      s << "FAIL: assert_near line " << line << " " << l << " not near " << r;
-      throw Fail(s.str());
-    }
-
-
-}
+};
 
 template<size_t N>
 struct String_literal {
@@ -82,7 +68,6 @@ void Test(F f) {
     result = e.what();
   }
   std::cout << style << l.value << " " << result << RESET << std::endl;
-  //std::cout << std::fixed << std::setprecision(4);
 }
 
 int main() {
@@ -91,15 +76,14 @@ int main() {
     []() {
             TU_TYPE val = 3.5f;
             auto c1 = Coherent_unit_base<1.0,2.0>(val);
-            assert_equal(val, c1.base_value , __LINE__);
+            assert<std::equal_to<>>(val, c1.base_value , __LINE__);
           
             auto c2 = Coherent_unit_base<1.0, 2.0>(c1);
-            assert_equal(val, c2.base_value , __LINE__);
             assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
             Unit<prefix::milli, Degree_fahrenheit> f(val);
             auto c3 = Coherent_unit_base(f);
-            assert_near((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , 10, __LINE__);
+            assert<near<>>((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , __LINE__);
         }       
   );
 
