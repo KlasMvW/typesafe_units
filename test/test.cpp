@@ -5,6 +5,7 @@
 #include <vector>
 #include <limits>
 #include <iomanip>
+#include <type_traits>
 
 #define ESC "\033["
 #define LIGHT_BLUE "\033[106m"
@@ -75,6 +76,11 @@ int main() {
   Test<"Coherent_unit_base">(
     []() {
             TU_TYPE val = 3.5f;
+            
+            //
+            // Test constructors.
+            //
+            
             auto c1 = Coherent_unit_base<1.0,2.0>(val);
             assert<std::equal_to<>>(val, c1.base_value , __LINE__);
           
@@ -82,7 +88,7 @@ int main() {
             assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
             Unit<prefix::milli, Degree_fahrenheit> f(val);
-            auto c3 = Coherent_unit_base(f);
+            Coherent_unit_base<0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0> c3 = Coherent_unit_base(f);
             assert<near<>>((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , __LINE__);
         }       
   );
@@ -113,8 +119,21 @@ int main() {
            static_assert(powexp<-1>::exp != 1);
            static_assert(powexp<0>::exp != 1);
            static_assert(powexp<1>::exp != 0);
-           static_assert(powexp<2>::exp != 1);}
-      );
+           static_assert(powexp<2>::exp != 1);
+         }
+  );
+
+  Test<"Coherent units definition">(
+    []() {
+           static_assert(std::is_base_of<Coherent_unit<s<1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Second >::value);
+           static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<1.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Meter>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Kilogram>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<1.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Ampere>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<1.0f>, mol<0.0f>, cd<0.0f>>, Kelvin>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<1.0f>, cd<0.0f>>, Mole>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<1.0f>>, Candela >::value);
+         }
+  );
 
     static_assert(tu::Hour::base_multiplier == 3600.0f);
     tu::Unit<tu::prefix::milli, tu::Second> a(1.0);
