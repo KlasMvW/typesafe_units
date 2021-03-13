@@ -1,41 +1,136 @@
 #include "tu/typesafe_units.h"
+#include <string>
+#include <sstream>
+#include <string_view>
+#include <vector>
+#include <limits>
+#include <iomanip>
+
+#define ESC "\033["
+#define LIGHT_BLUE "\033[106m"
+#define PURPLE "\033[35m"
+#define FAIL "\033[31m"
+#define SUCCESS "\033[32m"
+#define RESET "\033[m"
+
+const std::string not_equal{" != "};
 
 using namespace tu;
 
-void test_pow10() {
-  static_assert(pow10<-2>() == (TU_TYPE)0.01);
-  static_assert(pow10<-1>() == (TU_TYPE)0.1);
-  static_assert(pow10<0>() == (TU_TYPE)1.0);
-  static_assert(pow10<1>() == (TU_TYPE)10.0);
-  static_assert(pow10<2>() == (TU_TYPE)100.0);
-
-  static_assert(pow10<-2>() != (TU_TYPE)1);
-  static_assert(pow10<-1>() != (TU_TYPE)1);
-  static_assert(pow10<0>() != (TU_TYPE)0);
-  static_assert(pow10<1>() != (TU_TYPE)1);
-  static_assert(pow10<2>() != (TU_TYPE)1);
-}
-
-void test_powexp() {
-  static_assert(powexp<-2>::exp == -2);
-  static_assert(powexp<-1>::exp == -1);
-  static_assert(powexp<0>::exp == 0);
-  static_assert(powexp<1>::exp == 1);
-  static_assert(powexp<2>::exp == 2);
-
-  static_assert(powexp<-2>::exp != 1);
-  static_assert(powexp<-1>::exp != 1);
-  static_assert(powexp<0>::exp != 1);
-  static_assert(powexp<1>::exp != 0);
-  static_assert(powexp<2>::exp != 1);
-
-}
-
-int main()
+struct Fail: std::exception
 {
-    test_pow10();
-    test_powexp();
+    Fail(std::string_view s) : std::exception(s.data()){};
+};
 
+
+template<typename Op, typename T>
+void assert(const T& l, const T& r, int line) {
+    Op op;
+  if (!op(l, r)) {
+      std::stringstream s;
+      if (std::is_same_v<Op, std::equal_to<T>>) {
+        s << "FAIL: assert_equal line " << line << " " << l << not_equal << r;
+      }
+      throw Fail(s.str());
+  }
+}
+
+template<typename L, typename R>
+void assert_equal(L&& l, R&& r, int line) {
+  if (l != r) {
+      std::stringstream s;
+      s << "FAIL: assert_equal line " << line << " " << l << " != " << r;
+      throw Fail(s.str());
+  }
+}
+
+template<class T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, void>::type
+    assert_near(const T l, const T r, int ulp, int line)
+{
+    // Code from https://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
+    // The machine epsilon has to be scaled to the magnitude of the values used
+    // and multiplied by the desired precision in ULPs (units in the last place)
+    // unless the result is subnormal
+    if (!(std::fabs(l - r) <= std::numeric_limits<T>::epsilon() * std::fabs(l + r) * ulp
+        || std::fabs(l - r) < std::numeric_limits<T>::min())) {
+      std::stringstream s;
+      s.precision(ulp);
+      s << "FAIL: assert_near line " << line << " " << l << " not near " << r;
+      throw Fail(s.str());
+    }
+
+
+}
+
+template<size_t N>
+struct String_literal {
+  constexpr String_literal(const char (&str)[N]) {
+      std::copy_n(str, N, value);
+  }
+  char value[N];
+};
+
+template<String_literal l, typename F>
+void Test(F f) {
+    auto style = SUCCESS;
+    std::string result{"SUCCESS"};
+  try {
+    f();
+  } catch (std::exception& e) {
+    style = FAIL;
+    result = e.what();
+  }
+  std::cout << style << l.value << " " << result << RESET << std::endl;
+  //std::cout << std::fixed << std::setprecision(4);
+}
+
+int main() {
+
+  Test<"Coherent_unit_base">(
+    []() {
+            TU_TYPE val = 3.5f;
+            auto c1 = Coherent_unit_base<1.0,2.0>(val);
+            assert_equal(val, c1.base_value , __LINE__);
+          
+            auto c2 = Coherent_unit_base<1.0, 2.0>(c1);
+            assert_equal(val, c2.base_value , __LINE__);
+            assert<std::equal_to<>>(val, c2.base_value , __LINE__);
+
+            Unit<prefix::milli, Degree_fahrenheit> f(val);
+            auto c3 = Coherent_unit_base(f);
+            assert_near((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , 10, __LINE__);
+        }       
+  );
+
+  Test<"pow10">(
+    []() {
+           static_assert(pow10<-2>() == (TU_TYPE)0.01);
+           static_assert(pow10<-1>() == (TU_TYPE)0.1);
+           static_assert(pow10<0>() == (TU_TYPE)1.0);
+           static_assert(pow10<1>() == (TU_TYPE)10.0);
+           static_assert(pow10<2>() == (TU_TYPE)100.0);   
+           static_assert(pow10<-2>() != (TU_TYPE)1);
+           static_assert(pow10<-1>() != (TU_TYPE)1);
+           static_assert(pow10<0>() != (TU_TYPE)0);
+           static_assert(pow10<1>() != (TU_TYPE)1);
+           static_assert(pow10<2>() != (TU_TYPE)1);
+         }
+  );
+
+  Test<"powexp">(
+    []() {
+           static_assert(powexp<-2>::exp == -2);
+           static_assert(powexp<-1>::exp == -1);
+           static_assert(powexp<0>::exp == 0);
+           static_assert(powexp<1>::exp == 1);
+           static_assert(powexp<2>::exp == 2);       
+           static_assert(powexp<-2>::exp != 1);
+           static_assert(powexp<-1>::exp != 1);
+           static_assert(powexp<0>::exp != 1);
+           static_assert(powexp<1>::exp != 0);
+           static_assert(powexp<2>::exp != 1);}
+      );
 
     static_assert(tu::Hour::base_multiplier == 3600.0f);
     tu::Unit<tu::prefix::milli, tu::Second> a(1.0);
@@ -51,6 +146,12 @@ int main()
 
     std::cout << "HIE2 " << tu::sqrt(asdf).base_value << std::endl;
     
+   tu::Unit<tu::prefix::no_prefix, tu::Minute> mmm(tu::sqrt(asdf));
+
+    if (std::is_same_v<decltype(tu::sqrt(asdf)), decltype(b)>) {
+        std::cout << "SAME" << std::endl;
+    }
+
     auto c = a * b;
 
     auto d = a/b;
