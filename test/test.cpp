@@ -6,6 +6,7 @@
 #include <limits>
 #include <iomanip>
 #include <type_traits>
+#include <variant>
 
 #define ESC "\033["
 #define LIGHT_BLUE "\033[106m"
@@ -22,20 +23,7 @@ struct Fail: std::exception
 };
 
 
-template<typename Op, typename T>
-void assert(const T& l, const T& r, int line) {
-    Op op;
-  if (!op(l, r)) {
-      std::stringstream s;
-      if (std::is_same_v<Op, std::equal_to<T>>) {
-        s << "FAIL: assert_equal. Line " << line << ". " << l << " != " << r;
-      } else
-      if (std::is_same_v<Op, near<T>>) {
-        s << "FAIL: assert_near. Line " << line << ". " << l << " not near " << r;
-      }
-      throw Fail(s.str());
-  }
-}
+
 
 template<class T = TU_TYPE>
 struct near {
@@ -53,48 +41,109 @@ struct near {
 template<size_t N>
 struct String_literal {
   constexpr String_literal(const char (&str)[N]) {
-      std::copy_n(str, N, value);
+      std::copy_n(str, N, name);
   }
-  char value[N];
+  char name[N];
 };
 
-template<String_literal l, typename F>
-void Test(F f) {
-    auto style = SUCCESS;
-    std::string result{"SUCCESS"};
-  try {
-    f();
-  } catch (std::exception& e) {
-    style = FAIL;
-    result = e.what();
+struct Success {};
+struct Failure {};
+
+struct Test_stats {
+  static inline int fail{0};
+  static inline int success{0};
+
+  ~Test_stats() {
+    std::cout << SUCCESS << "SUCCESS: " << success << std::endl;
+    std::cout << FAIL    << "FAIL   : " << fail << RESET << std::endl;
   }
-  std::cout << style << l.value << " " << result << RESET << std::endl;
+} stats;
+
+template<String_literal l>
+struct Test {
+
+  struct Layout {
+    int column_width{30};
+  } layout;
+
+  std::variant<Success, Failure> state;
+  std::vector<std::vector<std::string>> log;
+
+  template <typename F>
+  Test(const F f) {
+
+  try {
+    f(*this);
+  } catch (Fail& f) {
+  } catch(...) {
+    std::cout << "Unexpected exception" << std::endl;
+    throw;
+  }
+  Log();
 }
+
+void Log(){
+  auto style = SUCCESS;
+  if (std::holds_alternative<Success>(state)) {
+     log.push_back({"SUCCESS"});
+     Test_stats::success++;
+  } else {
+    style = FAIL;
+    Test_stats::fail++;
+  }
+  std::cout << style << std::left << std::setw(layout.column_width) << l.name;
+  for (const auto &row : log) {
+    for(const auto &column: row){
+      std::cout << std::left << std::setw(layout.column_width) << column;
+    }
+      std::cout << std::endl << std::setfill(' ') << std::setw(layout.column_width) << " ";
+  }
+  std::cout << std::endl << RESET;
+}
+
+template<typename Op, typename T>
+void assert(const T& l, const T& r, int line) {
+    Op op;
+ if (!op(l, r)) {
+      state = Failure();
+      std::stringstream s;
+      if (std::is_same_v<Op, std::equal_to<>>) {
+        log.push_back({"FAIL: assert_equal", "Line " + std::to_string(line), std::to_string(l) + " != " + std::to_string(r)});
+      } else
+      if (std::is_same_v<Op, near<T>>) {
+        log.push_back({"FAIL: assert_near", "Line " + std::to_string(line), std::to_string(l) + " not near " + std::to_string(r)});
+      } else {
+         log.push_back({"FAIL: assert", "Line " + std::to_string(line)});
+      }
+  }
+  return;
+}
+
+};
 
 int main() {
 
-  Test<"Coherent_unit_base">(
-    []() {
-            TU_TYPE val = 3.5f;
-            
+  auto T = Test<"Coherent_unit_base">(
+    []<typename B>(B &b) {
+            TU_TYPE val = 3.5;
             //
             // Test constructors.
             //
-            
-            auto c1 = Coherent_unit_base<1.0,2.0>(val);
-            assert<std::equal_to<>>(val, c1.base_value , __LINE__);
+
+            auto c1 = Coherent_unit_base<1.0, 2.0>(val);
+            b.assert<std::equal_to<>>(val, c1.base_value, __LINE__);
           
             auto c2 = Coherent_unit_base<1.0, 2.0>(c1);
-            assert<std::equal_to<>>(val, c2.base_value , __LINE__);
+            b.assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
             Unit<prefix::milli, Degree_fahrenheit> f(val);
             Coherent_unit_base<0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0> c3 = Coherent_unit_base(f);
-            assert<near<>>((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , __LINE__);
+            b.assert<near<>>((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , __LINE__);
         }       
   );
 
   Test<"pow10">(
-    []() {
+    []<typename B>(B &b) {
            static_assert(pow10<-2>() == (TU_TYPE)0.01);
            static_assert(pow10<-1>() == (TU_TYPE)0.1);
            static_assert(pow10<0>() == (TU_TYPE)1.0);
@@ -109,7 +158,7 @@ int main() {
   );
 
   Test<"powexp">(
-    []() {
+    []<typename B>(B &b) {
            static_assert(powexp<-2>::exp == -2);
            static_assert(powexp<-1>::exp == -1);
            static_assert(powexp<0>::exp == 0);
@@ -124,7 +173,7 @@ int main() {
   );
 
   Test<"Coherent units definition">(
-    []() {
+    []<typename B>(B &b) {
            static_assert(std::is_base_of<Coherent_unit<s<1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Second >::value);
            static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<1.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Meter>::value);
            static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Kilogram>::value);

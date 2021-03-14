@@ -128,8 +128,8 @@ struct Coherent_unit_base : Unit_fundament {
   Coherent_unit_base(const Unit<pf, U>, TU_TYPE value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
   }
   
-  static constexpr TU_TYPE base_multiplier = 1.0f;
-  static constexpr TU_TYPE base_add = 0.0f;
+  static constexpr TU_TYPE base_multiplier{1.0f};
+  static constexpr TU_TYPE base_add{0.0f};
   const TU_TYPE base_value{0.0f};
 };
 
