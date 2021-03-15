@@ -69,12 +69,11 @@ struct Test {
   std::variant<Success, Failure> state;
   std::vector<std::vector<std::string>> log;
 
-  template <typename F>
+  template<typename F>
   Test(const F f) {
 
   try {
     f(*this);
-  } catch (Fail& f) {
   } catch(...) {
     std::cout << "Unexpected exception" << std::endl;
     throw;
@@ -106,11 +105,10 @@ void assert(const T& l, const T& r, int line) {
     Op op;
  if (!op(l, r)) {
       state = Failure();
-      std::stringstream s;
-      if (std::is_same_v<Op, std::equal_to<>>) {
+      if constexpr (std::is_same_v<Op, std::equal_to<>>) {
         log.push_back({"FAIL: assert_equal", "Line " + std::to_string(line), std::to_string(l) + " != " + std::to_string(r)});
       } else
-      if (std::is_same_v<Op, near<T>>) {
+      if constexpr (std::is_same_v<Op, near<T>>) {
         log.push_back({"FAIL: assert_near", "Line " + std::to_string(line), std::to_string(l) + " not near " + std::to_string(r)});
       } else {
          log.push_back({"FAIL: assert", "Line " + std::to_string(line)});
@@ -123,27 +121,52 @@ void assert(const T& l, const T& r, int line) {
 
 int main() {
 
-  auto T = Test<"Coherent_unit_base">(
-    []<typename B>(B &b) {
+  Test<"Coherent_unit_base">(
+    []<typename T>(T &t) {
             TU_TYPE val = 3.5;
             //
             // Test constructors.
             //
 
             auto c1 = Coherent_unit_base<1.0, 2.0>(val);
-            b.assert<std::equal_to<>>(val, c1.base_value, __LINE__);
+            t.assert<std::equal_to<>>(val, c1.base_value, __LINE__);
           
             auto c2 = Coherent_unit_base<1.0, 2.0>(c1);
-            b.assert<std::equal_to<>>(val, c2.base_value , __LINE__);
+            t.assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
             Unit<prefix::milli, Degree_fahrenheit> f(val);
             Coherent_unit_base<0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0> c3 = Coherent_unit_base(f);
-            b.assert<near<>>((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , __LINE__);
+            t.assert<near<>>((val * 1.0e-3f - 32.0f)/1.8f + 273.15f, c3.base_value , __LINE__);
         }       
   );
 
+  Test<"Non_coherent_unit">(
+    []<typename T>(T &t){
+      auto fahrenheit = Non_coherent_unit<1.0f / 1.8f, -32.0f, Degree_celsius>();
+      t.assert<std::equal_to<>>(fahrenheit.base_multiplier, Degree_celsius::base_multiplier * 1.0f / 1.8f, __LINE__);
+      t.assert<std::equal_to<>>(fahrenheit.base_add, -32.0f * 1.0f / 1.8f +  Degree_celsius::base_add, __LINE__);
+    }
+  );
+
+  Test<"convert_to">(
+    []<typename T>(T &t){
+      Unit<prefix::milli, Second> ms(5000.0f);
+      Unit<prefix::no_prefix, Minute> m = convert_to<prefix::no_prefix, Minute>(ms);
+      t.assert<std::equal_to<>>(m.value, (ms.base_value - Minute::base_add) / Minute::base_multiplier , __LINE__);
+      t.assert<near<>>(m.value, 1.0f / 12.0f, __LINE__);
+
+      Unit<prefix::milli, Kelvin> mk(5000.0f);
+      Unit<prefix::no_prefix, Degree_fahrenheit> f = convert_to<prefix::no_prefix, Degree_fahrenheit>(mk);
+      t.assert<std::equal_to<>>(f.value, (mk.base_value - Degree_fahrenheit::base_add) / Degree_fahrenheit::base_multiplier , __LINE__);
+      t.assert<near<>>(f.value, -450.67f, __LINE__);
+
+      Unit<prefix::milli, Kelvin> mk2 = convert_to<prefix::milli, Kelvin>(f);
+      t.assert<near<>>(mk2.value, 5000.0f, __LINE__);
+    }
+  );
+
   Test<"pow10">(
-    []<typename B>(B &b) {
+    []<typename T>(T) {
            static_assert(pow10<-2>() == (TU_TYPE)0.01);
            static_assert(pow10<-1>() == (TU_TYPE)0.1);
            static_assert(pow10<0>() == (TU_TYPE)1.0);
@@ -158,7 +181,7 @@ int main() {
   );
 
   Test<"powexp">(
-    []<typename B>(B &b) {
+    []<typename T>(T) {
            static_assert(powexp<-2>::exp == -2);
            static_assert(powexp<-1>::exp == -1);
            static_assert(powexp<0>::exp == 0);
@@ -173,7 +196,7 @@ int main() {
   );
 
   Test<"Coherent units definition">(
-    []<typename B>(B &b) {
+    []<typename T>(T) {
            static_assert(std::is_base_of<Coherent_unit<s<1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Second >::value);
            static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<1.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Meter>::value);
            static_assert(std::is_base_of<Coherent_unit<s<0.0f>, m<0.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>, Kilogram>::value);
