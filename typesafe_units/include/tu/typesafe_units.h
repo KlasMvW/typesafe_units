@@ -124,8 +124,9 @@ struct Coherent_unit_base : Unit_fundament {
   
   template<prefix pf,
            typename U,
-           template<prefix, typename> typename Unit>
-  Coherent_unit_base(const Unit<pf, U>, TU_TYPE value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
+           template<prefix, typename> typename Un,
+           std::enable_if_t<std::is_same<typename U::Base, Base>::value>* = nullptr>
+  Coherent_unit_base(const Un<pf, U>, TU_TYPE value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
   }
   
   static constexpr TU_TYPE base_multiplier{1.0f};
@@ -335,9 +336,12 @@ requires std::derived_from<U, Unit_fundament>
 struct Unit : U::Base {
   Unit(TU_TYPE v) : U::Base(*this, v), value(v){}
   
-  Unit(const typename U::Base& b) : U::Base(b), value((b.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
+  // Is this contructor needed? 
+  // Comment out for now.
+  // Unit(const typename U::Base& b) : U::Base(b), value((b.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
   
-  template<typename V>
+  template<typename V,
+           std::enable_if_t<std::is_same<typename V::Base, typename U::Base>::value>* = nullptr>
   requires std::derived_from<V, Unit_fundament>
   Unit(const V& v) : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
   const TU_TYPE value{0.0f};
