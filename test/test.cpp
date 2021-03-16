@@ -165,6 +165,21 @@ int main() {
     }
   );
 
+    Test<"Unit">(
+      []<typename T>(T &t){
+        auto value = 5.0f;
+        Unit<prefix::no_prefix, Second> s(value);
+        t.assert<std::equal_to<>>(s.value, value, __LINE__);
+
+        Unit<prefix::no_prefix, Minute> m(s);
+        t.assert<std::equal_to<>>(m.value, 5.0f / 60.0f, __LINE__);
+
+        Unit<prefix::milli, Degree_celsius> c(5000.0f);
+        Unit<prefix::no_prefix, Degree_fahrenheit> f(c);
+        t.assert<near<>>(f.value, value * 9.0f / 5.0f + 32.0f, __LINE__);
+      }
+    );
+
   Test<"pow10">(
     []<typename T>(T) {
            static_assert(pow10<-2>() == (TU_TYPE)0.01);
