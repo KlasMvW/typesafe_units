@@ -180,6 +180,53 @@ int main() {
       }
     );
 
+    Test<"Unit binary operator: plus">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20.0f;
+        Unit<prefix::micro, Second> s1(value1);
+        Unit<prefix::micro, Second> s2(value2);
+
+        Unit<prefix::micro, Second> s12 = s1 + s2;
+        t.assert<std::equal_to<>>(value1 + value2, s12.value, __LINE__);
+      }
+    );
+
+    Test<"Unit binary operator: minus">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20.0f;
+        Unit<prefix::micro, Second> s1(value1);
+        Unit<prefix::micro, Second> s2(value2);
+
+        Unit<prefix::micro, Second> s12 = s1 - s2;
+        t.assert<std::equal_to<>>(value1 - value2, s12.value, __LINE__);
+      }
+    );
+
+    Test<"binary_op_args">(
+      []<typename T>(T ){
+        {
+          tu::Coherent_unit_base<1,2,3,4,5,6> l(2);
+          tu::Coherent_unit_base<6,5,4,3,2,1> r(3);
+          tu::Coherent_unit_base<> lr;
+          tu::Coherent_unit_base<7,7,7,7,7,7> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+        }
+
+        //
+        // Base case
+        //
+        {
+          tu::Coherent_unit_base<> l(2);
+          tu::Coherent_unit_base<> r(3);
+          tu::Coherent_unit_base<1,2,3,4,5,6,7> lr;
+          tu::Coherent_unit_base<1,2,3,4,5,6,7> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+        }
+
+        
+    }
+  );
+
   Test<"pow10">(
     []<typename T>(T) {
            static_assert(pow10<-2>() == (TU_TYPE)0.01);
