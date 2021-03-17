@@ -180,7 +180,7 @@ int main() {
       }
     );
 
-    Test<"Unit binary operator: plus">(
+    Test<"Unit binary operator: + (plus)">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -192,7 +192,7 @@ int main() {
       }
     );
 
-    Test<"Unit binary operator: minus">(
+    Test<"Unit binary operator: - (minus)">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -201,6 +201,18 @@ int main() {
 
         Unit<prefix::micro, Second> s12 = s1 - s2;
         t.assert<std::equal_to<>>(value1 - value2, s12.value, __LINE__);
+      }
+    );
+
+    Test<"Unit binary operator: * (multiplication)">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20.0f;
+        Unit<prefix::milli, Second> s(value1);
+        Unit<prefix::milli, Ampere> a(value2);
+
+        Coherent_unit_base<1,0,0,1,0,0,0> sa = s * a;
+        t.assert<std::equal_to<>>(sa.base_value, value1 * value2 * 1e-6f, __LINE__);
       }
     );
 
@@ -222,8 +234,6 @@ int main() {
           tu::Coherent_unit_base<1,2,3,4,5,6,7> lr;
           tu::Coherent_unit_base<1,2,3,4,5,6,7> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
         }
-
-        
     }
   );
 
