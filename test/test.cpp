@@ -180,7 +180,7 @@ int main() {
       }
     );
 
-    Test<"Unit binary operator: + (plus)">(
+    Test<"Unit binary operator: +">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -192,7 +192,7 @@ int main() {
       }
     );
 
-    Test<"Unit binary operator: - (minus)">(
+    Test<"Unit binary operator: -">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -204,7 +204,7 @@ int main() {
       }
     );
 
-    Test<"Unit binary operator: * (multiplication)">(
+    Test<"Unit binary operator: *">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -216,7 +216,7 @@ int main() {
       }
     );
 
-    Test<"Unit binary operator: / (division)">(
+    Test<"Unit binary operator: /">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -228,7 +228,7 @@ int main() {
       }
     );
 
-    Test<"Coherent_unit_base binary operator: * (multiplication)">(
+    Test<"Coherent_unit_base binary operator: *">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
@@ -240,7 +240,7 @@ int main() {
       }
     );
 
-    Test<"Choherent_unit_base binary operator: / (division)">(
+    Test<"Choherent_unit_base binary operator: /">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20.0f;
