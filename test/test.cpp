@@ -286,6 +286,24 @@ int main() {
     }
   );
 
+  Test<"pow Coherent_unit_base">(
+    []<typename T>(T &t) {
+      auto value = 3.0f;
+      Coherent_unit_base<1,2,3,4,5,6> r(value);
+      Coherent_unit_base<2,4,6,8,10,12> l = pow<2.0f>(r);
+      t.assert<std::equal_to<>>(pow(value,2.0f), l.base_value, __LINE__);
+    }
+  );
+
+    Test<"pow Unit">(
+    []<typename T>(T &t) {
+      auto value1 = 20.0f;
+      Unit<prefix::milli, Second> s(value1);
+      Coherent_unit_base<2,0,0,0,0,0,0> l = pow<2.0f>(s);
+      t.assert<std::equal_to<>>(l.base_value, pow(value1, 2.0f ) * 1e-6f, __LINE__);
+    }
+  );
+
   Test<"pow10">(
     []<typename T>(T) {
            static_assert(pow10<-2>() == (TU_TYPE)0.01);
