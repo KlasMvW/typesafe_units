@@ -216,24 +216,73 @@ int main() {
       }
     );
 
+    Test<"Unit binary operator: / (division)">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20.0f;
+        Unit<prefix::milli, Second> s(value1);
+        Unit<prefix::milli, Ampere> a(value2);
+
+        Coherent_unit_base<1,0,0,-1,0,0,0> sa = s / a;
+        t.assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
+      }
+    );
+
+    Test<"Coherent_unit_base binary operator: * (multiplication)">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20.0f;
+        Coherent_unit_base<1,0,0,0,0,0,0> s(value1);
+        Coherent_unit_base<0,0,0,1,0,0,0> a(value2);
+
+        Coherent_unit_base<1,0,0,1,0,0,0> sa = s * a;
+        t.assert<std::equal_to<>>(sa.base_value, value1 * value2, __LINE__);
+      }
+    );
+
+    Test<"Choherent_unit_base binary operator: / (division)">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20.0f;
+        Coherent_unit_base<1,0,0,0,0,0,0> s(value1);
+        Coherent_unit_base<0,0,0,1,0,0,0> a(value2);
+
+        Coherent_unit_base<1,0,0,-1,0,0,0> sa = s / a;
+        t.assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
+      }
+    );
+
     Test<"binary_op_args">(
       []<typename T>(T ){
         {
-          tu::Coherent_unit_base<1,2,3,4,5,6> l(2);
-          tu::Coherent_unit_base<6,5,4,3,2,1> r(3);
-          tu::Coherent_unit_base<> lr;
-          tu::Coherent_unit_base<7,7,7,7,7,7> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+          Coherent_unit_base<1,2,3,4,5,6> l(2);
+          Coherent_unit_base<6,5,4,3,2,1> r(3);
+          Coherent_unit_base<> lr;
+          Coherent_unit_base<7,7,7,7,7,7> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
         }
 
         //
         // Base case
         //
         {
-          tu::Coherent_unit_base<> l(2);
-          tu::Coherent_unit_base<> r(3);
-          tu::Coherent_unit_base<1,2,3,4,5,6,7> lr;
-          tu::Coherent_unit_base<1,2,3,4,5,6,7> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+          Coherent_unit_base<> l(2);
+          Coherent_unit_base<> r(3);
+          Coherent_unit_base<1,2,3,4,5,6,7> lr;
+          decltype(lr) l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
         }
+    }
+  );
+
+  Test<"binary_op_args_num">(
+    []<typename T>(T ) {
+      Coherent_unit_base<1,2,3,4,5,6> l;
+      Coherent_unit_base<> empty;
+      Coherent_unit_base<2,4,6,8,10,12> r = binary_op_args_num(l, powexp<2.0f>(), empty, std::multiplies<TU_TYPE>());
+      
+      //
+      // Base case
+      //
+      decltype(l) r2 = binary_op_args_num(empty, powexp<2.0f>(), l, std::multiplies<TU_TYPE>());
     }
   );
 
