@@ -63,7 +63,7 @@ template<String_literal l>
 struct Test {
 
   struct Layout {
-    int column_width{30};
+    int column_width{40};
   } layout;
 
   std::variant<Success, Failure> state;
