@@ -14,11 +14,6 @@
 
 using namespace tu;
 
-struct Fail: std::exception
-{
-    Fail(std::string_view s) : std::exception(s.data()){};
-};
-
 template<class T = TU_TYPE>
 struct near {
   constexpr bool operator()(const T &l, const T &r) const {
