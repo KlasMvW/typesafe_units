@@ -44,12 +44,37 @@ Current typesafe supported operations on units are:
 * Subtraction (-)
 * Multiplication (*)
 * Division (/)
-* Power to arbitraty floating point number (pow)
+* Power to arbitrary floating point number (pow)
 * Square root (sqrt)
 
+## Requirements
+
+TU requires a c++20 compliant compiler. Specifically TU utilizes float non-type template arguments.
+
+Supported compilers:
+ * cl 19.28.29910 (Visual Studio 16.9.0) x64
+
+For the test suite that comes with TU to work, your system needs to have support for ANSI escape sequences since the output uses colours. This should work on fairly recent Windows 10 system, linux and macOS. It might be a problem on Windows 7 though. If you find that this is a showstopper for you please let us know. If enough people run TU on systems that does not have support for ANSI escape sequences, we will remove it. 
 
 ## Installation
 
 ## Test suite
 
+TU comes with its own test suite. It does not rely on any externa testing tool. To verify that TU runs on your system, build the test suite with cmake.
+
+The following instruction assumes that you do an out of source build in the directory `build_Release` under the repository root.
+
+```bat
+cmake .. -G "Visual Studio 16 2019" -A x64
+cmake --build . --config release  
+```
+Run the test suite
+
+```
+test\Release\tu_test.exe
+```
+
 ## License
+
+TU is released under the MIT license. https://mit-license.org/
+
