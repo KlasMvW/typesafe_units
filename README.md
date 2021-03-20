@@ -49,12 +49,16 @@ Current typesafe supported operations on units are:
 
 ## Requirements
 
-TU requires a c++20 compliant compiler. Specifically TU utilizes float non-type template arguments.
-
-Supported compilers:
- * cl 19.28.29910 (Visual Studio 16.9.0) x64
+TU requires a c++20 compliant compiler. Specifically TU utilizes float non-type template arguments. 
 
 For the test suite that comes with TU to work, your system needs to have support for ANSI escape sequences since the output uses colours. This should work on fairly recent Windows 10 system, linux and macOS. It might be a problem on Windows 7 though. If you find that this is a showstopper for you please let us know. If enough people run TU on systems that does not have support for ANSI escape sequences, we will remove it. 
+
+## Tested compilers
+
+TU has been confirmed to build with 
+ * x64 msvc 19.28 (VS 16.9.0 cl 19.28.29910) /std:c++latest
+ * arm64 mnsv 19.28 (VS 16.9.0) /std:c++latest
+ * x86-64 gcc (trunk 2021-03-20) -std=c++20
 
 ## Installation
 
