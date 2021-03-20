@@ -22,9 +22,6 @@ struct Fail: std::exception
     Fail(std::string_view s) : std::exception(s.data()){};
 };
 
-
-
-
 template<class T = TU_TYPE>
 struct near {
   constexpr bool operator()(const T &l, const T &r) const {
@@ -183,24 +180,24 @@ int main() {
     Test<"Unit binary operator: +">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
-        auto value2 = 20.0f;
-        Unit<prefix::micro, Second> s1(value1);
+        auto value2 = 20000.0f;
+        Unit<prefix::milli, Second> s1(value1);
         Unit<prefix::micro, Second> s2(value2);
 
-        Unit<prefix::micro, Second> s12 = s1 + s2;
-        t.assert<std::equal_to<>>(value1 + value2, s12.value, __LINE__);
+        Coherent_unit_base<1,0,0,0,0,0,0> s12 = s1 + s2;
+        t.assert<near<>>(30.0e-3f, s12.base_value, __LINE__);
       }
     );
 
     Test<"Unit binary operator: -">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
-        auto value2 = 20.0f;
-        Unit<prefix::micro, Second> s1(value1);
+        auto value2 = 20000.0f;
+        Unit<prefix::milli, Second> s1(value1);
         Unit<prefix::micro, Second> s2(value2);
 
-        Unit<prefix::micro, Second> s12 = s1 - s2;
-        t.assert<std::equal_to<>>(value1 - value2, s12.value, __LINE__);
+        Coherent_unit_base<1,0,0,0,0,0,0> s12 = s1 - s2;
+        t.assert<near<>>(-10.0e-3f, s12.base_value, __LINE__);
       }
     );
 

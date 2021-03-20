@@ -354,17 +354,17 @@ struct Unit : U::Base {
 //
 // Not passing references supposedly makes code like a + b + c more optimized.
 //
-template<prefix pf, typename U>
-auto operator + (const Unit<pf, U> l, const Unit<pf, U> r)
+template<prefix pfl, prefix pfr, typename U>
+auto operator + (const Unit<pfl, U> l, const Unit<pfr, U> r)
 {
-  Unit<pf, U> lr(l.value + r.value);
+  typename U::Base lr(l.base_value + r.base_value);
   return lr; 
 }
 
-template<prefix pf, typename U>
-auto operator - (const Unit<pf, U> l, const Unit<pf, U> r)
+template<prefix pfl, prefix pfr, typename U>
+auto operator - (const Unit<pfl, U> l, const Unit<pfr, U> r)
 {
-  Unit<pf, U> lr(l.value - r.value);
+  typename U::Base lr(l.base_value - r.base_value);
   return lr; 
 }
 
@@ -501,7 +501,6 @@ auto pow(Unit<pf, U> u) -> decltype(pow<exp>(static_cast<typename decltype(u)::B
   return pow<exp>(static_cast<typename decltype(u)::Base&>(u));
 }
 
-
 //
 // sqrt for struct Unit.
 //
@@ -511,7 +510,6 @@ requires std::derived_from<U, Unit_fundament>
 auto sqrt(Unit<pf, U> u) {
     return pow<0.5f>(u);
 }
-
 
 //
 // sqrt for struct Coherent_unit<> or similar.
