@@ -1,3 +1,4 @@
+#pragma once
 //
 // TU_TYPE is the underlying unit data type 
 //
@@ -229,46 +230,46 @@ struct Coherent_unit: Coherent_unit_base<T::power, L::power, M::power, A::power,
 // 
 // Explicit definitions of coherent units 
 // 
-struct Second : Coherent_unit<s<1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Meter : Coherent_unit<s<0>, m<1>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Kilogram: Coherent_unit<s<0>, m<0>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Ampere: Coherent_unit<s<0>, m<0>, kg<0>, A<1>, K<0>, mol<0>, cd<0>>{};
-struct Kelvin: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<1>, mol<0>, cd<0>>{};
-struct Mole: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<1>, cd<0>>{};
-struct Candela: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<1>>{};
+struct Second : Coherent_unit<s<1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Meter : Coherent_unit<s<0.0f>, m<1.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Kilogram: Coherent_unit<s<0.0f>, m<0.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Ampere: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<1.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Kelvin: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<1.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Mole: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<1.0f>, cd<0.0f>>{};
+struct Candela: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<1.0f>>{};
 
 //
 // Dervived units with special names
 //
 
-struct Hertz : Coherent_unit<s<-1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Becquerel: Coherent_unit<s<-1>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Ohm: Coherent_unit<s<-3>, m<2>, kg<1>, A<-2>, K<0>, mol<0>, cd<0>>{};
-struct Siemens: Coherent_unit<s<3>, m<-2>, kg<-1>, A<2>, K<0>, mol<0>, cd<0>>{};
-struct Farad: Coherent_unit<s<4>, m<-2>, kg<-1>, A<2>, K<0>, mol<0>, cd<0>>{};
-struct Lumen: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<1>>{};
-struct Weber: Coherent_unit<s<-2>, m<2>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
-struct Gray: Coherent_unit<s<-2>, m<2>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Sievert: Coherent_unit<s<-2>, m<2>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Watt: Coherent_unit<s<-3>, m<2>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Newton: Coherent_unit<s<-2>, m<1>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Lux: Coherent_unit<s<0>, m<-2>, kg<0>, A<0>, K<0>, mol<0>, cd<1>>{};
-struct Radian: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Joule: Coherent_unit<s<-2>, m<2>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Steradian: Coherent_unit<s<0>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Katal: Coherent_unit<s<-1>, m<0>, kg<0>, A<0>, K<0>, mol<1>, cd<0>>{};
-struct Pascal: Coherent_unit<s<-2>, m<-1>, kg<1>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Coulomb: Coherent_unit<s<1>, m<0>, kg<0>, A<1>, K<0>, mol<0>, cd<0>>{};
-struct Henry: Coherent_unit<s<-2>, m<2>, kg<1>, A<-2>, K<0>, mol<0>, cd<0>>{};
-struct Tesla: Coherent_unit<s<-2>, m<0>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
-struct Volt : Coherent_unit<s<-3>, m<2>, kg<1>, A<-1>, K<0>, mol<0>, cd<0>>{};
+struct Hertz : Coherent_unit<s<-1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Becquerel: Coherent_unit<s<-1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Ohm: Coherent_unit<s<-3.0f>, m<2.0f>, kg<1.0f>, A<-2.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Siemens: Coherent_unit<s<3.0f>, m<-2.0f>, kg<-1.0f>, A<2.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Farad: Coherent_unit<s<4.0f>, m<-2.0f>, kg<-1.0f>, A<2.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Lumen: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<1.0f>>{};
+struct Weber: Coherent_unit<s<-2.0f>, m<2.0f>, kg<1.0f>, A<-1.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Gray: Coherent_unit<s<-2.0f>, m<2.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Sievert: Coherent_unit<s<-2.0f>, m<2.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Watt: Coherent_unit<s<-3.0f>, m<2.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Newton: Coherent_unit<s<-2.0f>, m<1.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Lux: Coherent_unit<s<0.0f>, m<-2.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<1.0f>>{};
+struct Radian: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Joule: Coherent_unit<s<-2.0f>, m<2.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Steradian: Coherent_unit<s<0.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Katal: Coherent_unit<s<-1.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<1.0f>, cd<0.0f>>{};
+struct Pascal: Coherent_unit<s<-2.0f>, m<-1.0f>, kg<1.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Coulomb: Coherent_unit<s<1.0f>, m<0.0f>, kg<0.0f>, A<1.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Henry: Coherent_unit<s<-2.0f>, m<2.0f>, kg<1.0f>, A<-2.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Tesla: Coherent_unit<s<-2.0f>, m<0.0f>, kg<1.0f>, A<-1.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Volt : Coherent_unit<s<-3.0f>, m<2.0f>, kg<1>, A<-1.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
 
 //
 // Derived coherent units
 //
 
-struct Meter_per_second : Coherent_unit<s<-1>, m<1>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
-struct Second_squared : Coherent_unit<s<2>, m<0>, kg<0>, A<0>, K<0>, mol<0>, cd<0>>{};
+struct Meter_per_second : Coherent_unit<s<-1.0f>, m<1.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
+struct Second_squared : Coherent_unit<s<2.0f>, m<0.0f>, kg<0.0f>, A<0.0f>, K<0.0f>, mol<0.0f>, cd<0.0f>>{};
 
 // 
 // Non-coherent units are coherent units with a prefix or conversion factor different from 1.0.
@@ -296,7 +297,7 @@ struct Hour : Non_coherent_unit<60.0f, 0.0f, Minute> {
 };
 
 struct Degree_celsius : Non_coherent_unit<1.0f, 273.15f, Kelvin> {
-  using Non_coherent_unit<1.0, 273.15f, Kelvin>::Base;
+  using Non_coherent_unit<1.0f, 273.15f, Kelvin>::Base;
 };
 
 struct Degree_fahrenheit : Non_coherent_unit<1.0f/1.8f, -32.0f, Degree_celsius> {
@@ -497,7 +498,7 @@ template<TU_TYPE exp,
          prefix pf,
          typename U>
 requires std::derived_from<U, Unit_fundament>
-auto pow(Unit<pf, U> u) -> decltype(pow<exp>(static_cast<typename decltype(u)::Base&>(u))) {
+auto pow(Unit<pf, U> u) {
   return pow<exp>(static_cast<typename decltype(u)::Base&>(u));
 }
 
@@ -520,5 +521,9 @@ requires std::derived_from<U<U_args...>, Unit_fundament>
 auto sqrt(U<U_args...> u){
   return pow<0.5f>(u);
 }
+
+// Trigonometric functions
+
+// Vector quantities
 
 } // namespace tu
