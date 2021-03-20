@@ -57,7 +57,7 @@ For the test suite that comes with TU to work, your system needs to have support
 
 TU has been confirmed to build with 
  * x64 msvc 19.28 (VS 16.9.0 cl 19.28.29910) /std:c++latest
- * arm64 mnsv 19.28 (VS 16.9.0) /std:c++latest
+ * arm64 msvc 19.28 (VS 16.9.0) /std:c++latest
  * x86-64 gcc (trunk 2021-03-20) -std=c++20
 
 ## Installation
