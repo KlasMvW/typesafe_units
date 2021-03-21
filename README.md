@@ -2,7 +2,7 @@
 
 ## Introduction
 
-TU is a C++ header-only library for typesafe unit operations. With TU you create instances of structs that represent units and operate on these instead of operating on numbers. 
+TU is a C++ header-only library for typesafe unit operations. With TU you create instances of templated structs that represent units and operate on these instead of operating on numbers. 
 
 ```c++
 Unit<prefix::milli, Second> s(5.0f);
