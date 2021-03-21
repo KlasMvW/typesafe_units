@@ -1,8 +1,8 @@
 #pragma once
+
 //
 // TU_TYPE is the underlying unit data type 
 //
-
 #ifndef TU_TYPE
 #   define TU_TYPE float
 #endif
@@ -13,23 +13,11 @@
 #include <utility>
 #include <cmath>
 
-// Initialize type safe units
-// Unit<milli, Meter> length(5.0f)
-// Unit<no_prefix, Second> time(10.0f)
-
-// Perform arithmetics
-// auto velocity = length / time
-// std::is_same<Coherent_unit_base<s<-1>, m<1>>, decltype(velocity)>::value == true; // evaluates to true 
-
-// Define new unit
-// struct Meter_per_second : Coherent_unit<s<-1>, m<1>>{};
-// Unit<no_prefix, Meter_per_second> velocity(length / time);
-
 namespace tu {
 
-/**
- * Prefixes used to define units.
- */
+//
+// Prefixes used to define units.
+//
 enum struct prefix {
   yocto = -24,
   zepto = -21,
@@ -57,9 +45,9 @@ enum struct prefix {
 //  
 // Returns compile time calculation of 10^exp.
 // Examples:
-//   pow10<3> retruns 1000.0f
-//   pow10<-3> returns 0.001f
-//   pow<0> returns 1.0f
+//   pow10<3> retruns 1000.0
+//   pow10<-3> returns 0.001
+//   pow<0> returns 1.0
 // 
 template<int exp>
 constexpr TU_TYPE pow10() {
@@ -75,7 +63,7 @@ constexpr TU_TYPE pow10() {
 }
 
 //
-// Convenience struct to wrap a float representing an exponent in a template argument.
+// Convenience struct to wrap a TU_TYPE representing an exponent in a template argument.
 // This makes it possibel to deduce the exponent argument from a function parameter.
 //
 template<TU_TYPE e>
@@ -94,7 +82,7 @@ struct Unit_fundament{};
 
 // 
 // Base struct for coherent units.
-// The variadic int arguments simplifies binary operations of units.
+// The variadic TU_TYPE arguments simplifies binary operations of units.
 // Direct use of this struct should be avoided in application code since it is
 // not explicit what quantity each template argument represent.
 // 
@@ -273,8 +261,8 @@ struct Meter_per_second : Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)1.0>, kg<(T
 struct Second_squared : Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 
 // 
-// Non-coherent units are coherent units with a prefix or conversion factor different from 1.0.
-// The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit  
+// Non-coherent units are coherent units with a prefix, conversion factor different from 1.0 or shift term different from 0.0.
+// The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit.
 // 
 template<TU_TYPE multiplier, TU_TYPE add, typename Parent_unit>
 requires std::derived_from<Parent_unit, Unit_fundament>
@@ -284,11 +272,7 @@ struct Non_coherent_unit : Parent_unit {
   using Base = typename Parent_unit::Base;
 };
 
-// 
-
-// Define non coherent units
-// 
-
+//
 // Define non coherent units
 // 
 
@@ -316,8 +300,8 @@ struct Gram : Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, Kilogram> {
 // 
 // Express one unit with prefix in a different unit.
 // Example:
-//   Unit<no_prefix, Minute> m(1.0f);
-//   Unit<milli, Second> s = tu::convert_to<milli, Second>(m);
+//   Unit<prefix::no_prefix, Minute> m(1.0f);
+//   Unit<prefix::milli, Second> s = tu::convert_to<prefix::milli, Second>(m);
 //   std::cout << s.value // prints 60000.0
 // 
 template<prefix to_prefix,
