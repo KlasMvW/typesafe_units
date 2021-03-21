@@ -74,7 +74,7 @@ TU has been confirmed to build with
 
 ## Test suite
 
-TU comes with its own test suite. It does not rely on any externa testing tool. To verify that TU runs on your system, build the test suite with cmake.
+TU comes with its own test suite. It does not rely on any externa testing tool. To verify that TU runs on your system, build the test suite with CMake.
 
 The following instruction assumes that you do an out of source build in a directory under the repository root.
 
