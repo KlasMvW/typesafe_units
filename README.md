@@ -53,7 +53,7 @@ Current supported typesafe operations on units are:
 By default TU uses single precision (`float`) as the underlying data type. To use double precision (`double`), assign `double` to the macro `TU_TYPE` i.e include `#define TU_TYPE double` before the inclusion of `typesafe_units.h`. If you use CMake, the definition can be made by
 
 ```CMake
-target_compile_definitions(my_target PRIVATE TU_TUPE=double)
+target_compile_definitions(my_target PRIVATE TU_TYPE=double)
 ```
 
 
