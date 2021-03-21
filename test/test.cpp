@@ -2,6 +2,9 @@
 #include <vector>
 #include <iomanip>
 #include <variant>
+#include <algorithm>
+#include <typeinfo>
+
 #include "tu/typesafe_units.h"
 
 #define ESC "\033["
@@ -103,9 +106,37 @@ void assert(const T& l, const T& r, int line) {
   }
   return;
 }
+
+
+
+template<typename Type, typename First, typename ...Among>
+constexpr void assert_type_among(int line, std::string types= "") {
+  types += std::string(typeid(First).name()) + ", ";
+  if constexpr (std::is_same_v<Type, First>){
+    return;
+  } else
+  if constexpr (sizeof...(Among) == 0) {
+    state = Failure();
+    log.push_back({"FAIL: assert type among", "Line " + std::to_string(line), std::string(typeid(Type).name()) + " not among " + "{" + types + "}"});
+    types="";
+    return;
+  } else {
+    assert_type_among<Type, Among...>(line, types);
+  }
+}
+
 };
 
+
+
 int main() {
+ 
+  Test<"TU_TYPE">(
+    []<typename T>(T &t) {
+      t.template assert_type_among<TU_TYPE, float, double>(__LINE__);
+    }
+  );
+
   Test<"Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE val = 3.5;
@@ -347,5 +378,4 @@ int main() {
   );
 
     static_assert(tu::Hour::base_multiplier == 3600.0f);
-
 }
