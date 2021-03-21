@@ -415,8 +415,7 @@ template<prefix pf_l,
          typename L,
          prefix pf_r,
          typename R>
-auto operator * (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) *
-                                                                 static_cast<typename decltype(ur)::Base&>(ur)){
+auto operator * (Unit<pf_l, L> ul, Unit<pf_r, R> ur) {
   return static_cast<typename decltype(ul)::Base&>(ul) * static_cast<typename decltype(ur)::Base&>(ur);
 }
 
@@ -424,8 +423,7 @@ template<prefix pf_l,
          typename L,
          prefix pf_r,
          typename R>
-auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) -> decltype(static_cast<typename decltype(ul)::Base&>(ul) /
-                                                                 static_cast<typename decltype(ur)::Base&>(ur)) {
+auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) {
   return static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur);
 }
 
