@@ -23,7 +23,12 @@ struct near {
   // The machine epsilon has to be scaled to the magnitude of the values used
   // and multiplied by the desired precision in ULPs (units in the last place)
   // unless the result is subnormal.
-  const int ulp =1000000000;
+  int ulp;
+  if (std::is_same_v<TU_TYPE, float>) {
+    ulp = 10;
+  } else {
+    ulp = 100000000;
+  }
   return (std::abs(l - r) <= std::numeric_limits<T>::epsilon() * std::abs(l + r) * ulp
           || std::abs(l - r) < std::numeric_limits<T>::min());
   }
@@ -45,8 +50,10 @@ struct Test_stats {
   static inline int success{0};
 
   ~Test_stats() {
-    std::cout << SUCCESS << "SUCCESS: " << success << std::endl;
-    std::cout << FAIL    << "FAIL   : " << fail << RESET << std::endl;
+    std::cout << SUCCESS << "SUCCESS: " << success << RESET << std::endl;
+    if (fail) {
+      std::cout << FAIL    << "FAIL   : " << fail << RESET << std::endl;
+    }
   }
 } stats;
 
@@ -82,12 +89,14 @@ struct Test {
     }
     std::cout << style << std::left << std::setw(layout.column_width) << lit.name;
     for (const auto &row : log) {
+      std::cout << style;
       for(const auto &column: row){
         std::cout << std::left << std::setw(layout.column_width) << column;
       }
-        std::cout << std::endl << std::setfill(' ') << std::setw(layout.column_width) << " ";
+        std::cout << RESET;
+        //std::cout << std::endl << std::setfill(' ') << std::setw(layout.column_width) << " ";
     }
-    std::cout << std::endl << RESET;
+    std::cout << RESET << std::endl;
   }
 
 template<typename Op, typename T>
@@ -126,8 +135,6 @@ constexpr void assert_type_among(int line, std::string types= "") {
 }
 
 };
-
-
 
 int main() {
  
@@ -378,4 +385,5 @@ int main() {
   );
 
     static_assert(tu::Hour::base_multiplier == 3600.0f);
+    return Test_stats::fail;
 }
