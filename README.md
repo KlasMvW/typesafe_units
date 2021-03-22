@@ -34,7 +34,7 @@ Attempts to initialize or operate on incompatible units will result in compilati
 Unit<prefix::milli, Second> s(20.0f);
 Unit<prefix::micro, Ampere> a(10.0f);
 
-auto sa = s + a;                        // Compilation failure 
+auto sa = s + a;                        // compilation failure 
 Unit<prefix::micro, Ampere> a2 = s * a; // compilation failure
 ```
 
