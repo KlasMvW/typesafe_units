@@ -80,14 +80,13 @@ The following instruction assumes that you do an out of source build in a direct
 
 ```bat
 cmake .. -G "Visual Studio 16 2019" -A x64
-cmake --build . --config release  
+cmake --build . --config <build type>  
 ```
 Run the test suite
 
 ```
-test\Release\tu_test.exe
+ctest -C <build type>
 ```
-
 
 ## License
 
