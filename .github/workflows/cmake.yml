@@ -9,7 +9,7 @@ env:
 jobs:
   build_windows:
     strategy:
-      fail-fase: false
+      fail-fast: false
       matrix:
         os: [windows-latest]
         build_type: [Release, Debug]
