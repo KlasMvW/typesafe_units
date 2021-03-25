@@ -1,3 +1,5 @@
+[![Windows](https://github.com/KlasMvW/typesafe_units/actions/workflows/cmake.yml/badge.svg)](https://github.com/KlasMvW/typesafe_units/actions/workflows/cmake.yml)
+
 # TU - Typesafe Units
 
 ## Introduction
