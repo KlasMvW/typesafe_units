@@ -53,9 +53,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: johelegp/gcc-snapshot@v1.0.0
-      with:
-        cache: true
+    - uses: johelegp/gcc-snapshot@v1.0.0 cache=false
     - uses: actions/checkout@v2
 
     - name: Create Build Environment
