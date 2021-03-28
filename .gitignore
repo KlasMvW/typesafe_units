@@ -3,3 +3,4 @@
 build_release
 build_debug
 install
+doxygen

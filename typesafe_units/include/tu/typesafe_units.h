@@ -323,17 +323,13 @@ convert_to(const Unit<from_prefix, From_unit>& from) {
 template<prefix pf, typename U>
 requires std::derived_from<U, Unit_fundament>
 struct Unit : U::Base {
-  Unit(TU_TYPE v) : U::Base(*this, v), value(v){}
-  
-  // Is this contructor needed? 
-  // Comment out for now.
-  // Unit(const typename U::Base& b) : U::Base(b), value((b.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
+  Unit(TU_TYPE v) : U::Base(*this, v), value(v){};
   
   template<typename V,
            std::enable_if_t<std::is_same<typename V::Base, typename U::Base>::value>* = nullptr>
   requires std::derived_from<V, Unit_fundament>
   Unit(const V& v) : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
-  const TU_TYPE value{0.0f};
+  const TU_TYPE value{0.0};
 };
 
 // 
@@ -509,6 +505,8 @@ auto sqrt(U<U_args...> u){
 }
 
 // Trigonometric functions
+
+// comparison fuction == < >
 
 // Vector quantities
 
