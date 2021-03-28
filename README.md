@@ -74,6 +74,37 @@ TU has been confirmed to build with
 
 ## Installation
 
+### Include the header
+TU is a header-only library. To use TU in you project, simply include the header `typesafe_units/include/tu/typesafe_units.h`.
+
+### CMake as package
+If you want to use TU as a CMake package you can use the CMake command `find_package` as follows and include the header by `#include "tu/typesafe_units.h"` 
+
+```CMake
+project(my_project LANGUAGES CXX)
+
+#
+# The package is called TU. Include it with `find_package`.
+# If CMake does not find the package you can specify the path to the TU root as
+# a HINT. You are required to state the exact version of TU that you want
+# to use. <version> should be given on the format major.minor.patch
+# e.g. 1.2.3.
+#
+find_package(TU <version> REQUIRED HINTS "<absolute path to TU root>")
+
+#
+# The library itself is called `tu` (lowercase). Link your target to it.
+#
+target_link_libraries(my_target tu)
+
+#
+# Make some configurations.
+# TU_TYPE sets the underlying datatype of TU. Use float or double.
+#
+set_property(TARGET my_target PROPERTY CXX_STANDARD 20)
+target_compile_definitions(my_target PRIVATE TU_TYPE=<float, double>)
+```
+
 ## Test suite
 
 TU comes with its own test suite. It does not rely on any externa testing tool. To verify that TU runs on your system, build the test suite with CMake.
