@@ -154,7 +154,7 @@ int main() {
       auto c2 = Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0>(c1);
       t.template assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
-      Unit<prefix::milli, Degree_fahrenheit> f(val);
+      Unit<prefix::milli, degree_fahrenheit> f(val);
       Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0> c3 = Coherent_unit_base(f);
       t.template assert<near<>>((val * 1.0e-3f - (TU_TYPE)32.0)/1.8f + (TU_TYPE)273.15, c3.base_value , __LINE__);
     }       
@@ -162,25 +162,25 @@ int main() {
 
   Test<"Non_coherent_unit">(
     []<typename T>(T &t){
-      auto fahrenheit = Non_coherent_unit<(TU_TYPE)(1.0f / 1.8f), -(TU_TYPE)32.0f, Degree_celsius>();
-      t.template assert<std::equal_to<>>(fahrenheit.base_multiplier, Degree_celsius::base_multiplier * (TU_TYPE)(1.0f / 1.8f), __LINE__);
-      t.template assert<std::equal_to<>>(fahrenheit.base_add, (TU_TYPE)(-32.0f * 1.0f / 1.8f +  Degree_celsius::base_add), __LINE__);
+      auto fahrenheit = Non_coherent_unit<(TU_TYPE)(1.0f / 1.8f), -(TU_TYPE)32.0f, degree_celsius>();
+      t.template assert<std::equal_to<>>(fahrenheit.base_multiplier, degree_celsius::base_multiplier * (TU_TYPE)(1.0f / 1.8f), __LINE__);
+      t.template assert<std::equal_to<>>(fahrenheit.base_add, (TU_TYPE)(-32.0f * 1.0f / 1.8f +  degree_celsius::base_add), __LINE__);
     }
   );
 
   Test<"convert_to">(
     []<typename T>(T &t){
-      Unit<prefix::milli, Second> ms(5000.0f);
-      Unit<prefix::no_prefix, Minute> m = convert_to<prefix::no_prefix, Minute>(ms);
-      t.template assert<std::equal_to<>>(m.value, (ms.base_value - Minute::base_add) / Minute::base_multiplier , __LINE__);
+      Unit<prefix::milli, second> ms(5000.0f);
+      Unit<prefix::no_prefix, minute> m = convert_to<prefix::no_prefix, minute>(ms);
+      t.template assert<std::equal_to<>>(m.value, (ms.base_value - minute::base_add) / minute::base_multiplier , __LINE__);
       t.template assert<near<>>(m.value, (TU_TYPE)(1.0f / 12.0f), __LINE__);
 
-      Unit<prefix::milli, Kelvin> mk(5000.0f);
-      Unit<prefix::no_prefix, Degree_fahrenheit> f = convert_to<prefix::no_prefix, Degree_fahrenheit>(mk);
-      t.template assert<std::equal_to<>>(f.value, (mk.base_value - Degree_fahrenheit::base_add) / Degree_fahrenheit::base_multiplier , __LINE__);
+      Unit<prefix::milli, kelvin> mk(5000.0f);
+      Unit<prefix::no_prefix, degree_fahrenheit> f = convert_to<prefix::no_prefix, degree_fahrenheit>(mk);
+      t.template assert<std::equal_to<>>(f.value, (mk.base_value - degree_fahrenheit::base_add) / degree_fahrenheit::base_multiplier , __LINE__);
       t.template assert<near<>>(f.value, (TU_TYPE)-450.67f, __LINE__);
 
-      Unit<prefix::milli, Kelvin> mk2 = convert_to<prefix::milli, Kelvin>(f);
+      Unit<prefix::milli, kelvin> mk2 = convert_to<prefix::milli, kelvin>(f);
       t.template assert<near<>>(mk2.value, (TU_TYPE)5000.0f, __LINE__);
     }
   );
@@ -188,14 +188,14 @@ int main() {
     Test<"Unit">(
       []<typename T>(T &t){
         TU_TYPE value = (TU_TYPE)5.0f;
-        Unit<prefix::no_prefix, Second> s(value);
+        Unit<prefix::no_prefix, second> s(value);
         t.template assert<std::equal_to<>>(s.value, value, __LINE__);
 
-        Unit<prefix::no_prefix, Minute> m(s);
+        Unit<prefix::no_prefix, minute> m(s);
         t.template assert<std::equal_to<>>(m.value, (TU_TYPE)5.0f / (TU_TYPE)60.0f, __LINE__);
 
-        Unit<prefix::milli, Degree_celsius> c((TU_TYPE)5000.0f);
-        Unit<prefix::no_prefix, Degree_fahrenheit> f(c);
+        Unit<prefix::milli, degree_celsius> c((TU_TYPE)5000.0f);
+        Unit<prefix::no_prefix, degree_fahrenheit> f(c);
         t.template assert<near<>>(f.value, value * 9.0f / 5.0f + (TU_TYPE)32.0f, __LINE__);
       }
     );
@@ -204,8 +204,8 @@ int main() {
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20000.0f;
-        Unit<prefix::milli, Second> s1(value1);
-        Unit<prefix::micro, Second> s2(value2);
+        Unit<prefix::milli, second> s1(value1);
+        Unit<prefix::micro, second> s2(value2);
 
         Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s12 = s1 + s2;
         t.template assert<near<>>((TU_TYPE)30.0e-3f, s12.base_value, __LINE__);
@@ -216,8 +216,8 @@ int main() {
       []<typename T>(T &t){
         auto value1 = 10.0f;
         auto value2 = 20000.0f;
-        Unit<prefix::milli, Second> s1(value1);
-        Unit<prefix::micro, Second> s2(value2);
+        Unit<prefix::milli, second> s1(value1);
+        Unit<prefix::micro, second> s2(value2);
 
         Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s12 = s1 - s2;
         t.template assert<near<>>(-(TU_TYPE)10.0e-3f, s12.base_value, __LINE__);
@@ -228,8 +228,8 @@ int main() {
       []<typename T>(T &t){
         TU_TYPE value1 = 10.0;
         TU_TYPE value2 = 20.0;
-        Unit<prefix::milli, Second> s(value1);
-        Unit<prefix::milli, Ampere> a(value2);
+        Unit<prefix::milli, second> s(value1);
+        Unit<prefix::milli, ampere> a(value2);
 
         Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s * a;
         t.template assert<near<>>(sa.base_value, value1 * value2 * (TU_TYPE)1.0e-6f, __LINE__);
@@ -240,8 +240,8 @@ int main() {
       []<typename T>(T &t){
         auto value1 = (TU_TYPE)10.0f;
         auto value2 = (TU_TYPE)20.0f;
-        Unit<prefix::milli, Second> s(value1);
-        Unit<prefix::milli, Ampere> a(value2);
+        Unit<prefix::milli, second> s(value1);
+        Unit<prefix::milli, ampere> a(value2);
 
         Coherent_unit_base<1.0f,0.0f,0.0f,-1.0f,0.0f,0.0f,0.0f> sa = s / a;
         t.template assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
@@ -318,7 +318,7 @@ int main() {
     Test<"pow Unit">(
     []<typename T>(T &t) {
       TU_TYPE value1 = (TU_TYPE)20.0f;
-      Unit<prefix::milli, Second> s(value1);
+      Unit<prefix::milli, second> s(value1);
       Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> l = pow<(TU_TYPE)2.0>(s);
       t.template assert<near<>>(l.base_value, (TU_TYPE)pow(value1, (TU_TYPE)2.0) * (TU_TYPE)1.0e-6f, __LINE__);
     }
@@ -336,7 +336,7 @@ int main() {
   Test<"sqrt Unit">(
     []<typename T>(T &t) {
       TU_TYPE value1 = 20.0;
-      Unit<prefix::milli, Second> s(value1);
+      Unit<prefix::milli, second> s(value1);
       Coherent_unit_base<(TU_TYPE)0.5, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> l = sqrt(s);
       t.template assert<near<>>(l.base_value, std::sqrt(value1) * std::pow((TU_TYPE)1e-3, (TU_TYPE)0.5), __LINE__);
     }
@@ -374,16 +374,16 @@ int main() {
 
   Test<"Coherent units definition">(
     []<typename T>(T) {
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, Second>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, Meter>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, Kilogram>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, Ampere>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)1.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, Kelvin>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)1.0>, cd<(TU_TYPE)0.0>>, Mole>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>, Candela >::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, second>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, meter>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, kilogram>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, ampere>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)1.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, kelvin>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)1.0>, cd<(TU_TYPE)0.0>>, mole>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>, candela >::value);
          }
   );
 
-    static_assert(tu::Hour::base_multiplier == 3600.0f);
+    static_assert(tu::hour::base_multiplier == 3600.0f);
     return Test_stats::fail;
 }

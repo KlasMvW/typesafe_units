@@ -81,14 +81,11 @@ TU is a header-only library. To use TU in you project, simply include the header
 If you want to use TU as a CMake package you can use the CMake command `find_package` as follows and include the header by `#include "tu/typesafe_units.h"` 
 
 ```CMake
-project(my_project LANGUAGES CXX)
-
 #
 # The package is called TU. Include it with `find_package`.
 # If CMake does not find the package you can specify the path to the TU root as
-# a HINT. You are required to state the exact version of TU that you want
-# to use. <version> should be given on the format major.minor.patch
-# e.g. 1.2.3.
+# a HINT. You are required to state the exact version of TU that you want to
+# use. <version> should be given on the format major.minor.patch e.g. 1.2.3.
 #
 find_package(TU <version> REQUIRED HINTS "<absolute path to TU root>")
 
