@@ -220,13 +220,12 @@ template<Second_power T,
          Candela_power cd>
 struct Coherent_unit: Coherent_unit_base<T::power, L::power, M::power, A::power, K::power, mol::power, cd::power>{};
 
-
 // 
 // Non-coherent units are coherent units with a prefix, conversion factor different from 1.0 or shift term different from 0.0.
 // The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit.
 // 
 template<TU_TYPE multiplier, TU_TYPE add, typename Parent_unit>
-requires std::derived_from<Parent_unit, Unit_fundament>
+requires (std::derived_from<Parent_unit, Unit_fundament> && multiplier != (TU_TYPE)0.0)
 struct Non_coherent_unit : Parent_unit {
   static constexpr TU_TYPE base_multiplier = Parent_unit::base_multiplier * multiplier;
   static constexpr TU_TYPE base_add = Parent_unit::base_add + add * multiplier;
