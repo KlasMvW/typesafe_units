@@ -94,10 +94,24 @@ struct Test {
         std::cout << std::left << std::setw(layout.column_width) << column;
       }
         std::cout << RESET;
-        //std::cout << std::endl << std::setfill(' ') << std::setw(layout.column_width) << " ";
+        std::cout << std::endl << std::setfill(' ') << std::setw(layout.column_width) << " ";
     }
     std::cout << RESET << std::endl;
   }
+
+void assert_true(bool is_true, int line) {
+  if (!is_true) {
+    state = Failure();
+    log.push_back({"FAIL: assert_true", "Line " + std::to_string(line), ""});
+  }
+}
+
+void assert_false(bool is_true, int line) {
+  if (is_true) {
+    state = Failure();
+    log.push_back({"FAIL: assert_false", "Line " + std::to_string(line), ""});
+  }
+}
 
 template<typename Op, typename T>
 void assert(const T& l, const T& r, int line) {
@@ -113,7 +127,6 @@ void assert(const T& l, const T& r, int line) {
          log.push_back({"FAIL: assert", "Line " + std::to_string(line)});
       }
   }
-  return;
 }
 
 
@@ -197,6 +210,29 @@ int main() {
         Unit<prefix::milli, degree_celsius> c((TU_TYPE)5000.0f);
         Unit<prefix::no_prefix, degree_fahrenheit> f(c);
         t.template assert<near<>>(f.value, value * 9.0f / 5.0f + (TU_TYPE)32.0f, __LINE__);
+      }
+    );
+
+    Test<"Unit three way operator <=>">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20000.0f;
+        Unit<prefix::milli, second> s1(value1);
+        Unit<prefix::micro, second> s2(value2);
+
+        t.assert_true(s1 < s2, __LINE__);
+        t.assert_false(s1 >= s2, __LINE__);
+        t.assert_false(s1 > s2, __LINE__);
+        t.assert_true(s1 != s2, __LINE__);
+        t.assert_false(s1 == s2, __LINE__);
+        t.assert_true(s1 <= s2, __LINE__);
+
+        t.assert_false(s2 < s2, __LINE__);
+        t.assert_true(s2 >= s2, __LINE__);
+        t.assert_false(s2 > s2, __LINE__);
+        t.assert_false(s2 != s2, __LINE__);
+        t.assert_true(s2 == s2, __LINE__);
+        t.assert_true(s2 <= s2, __LINE__);
       }
     );
 

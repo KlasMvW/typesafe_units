@@ -80,7 +80,9 @@ struct powexp {
 // template arguments to derive from it. Empty base optimization ensures that
 // this construction does not come with any memory overhead.   
 // 
-struct Unit_fundament{};
+struct Unit_fundament{
+  auto operator <=> (const Unit_fundament& other) const noexcept = default;
+};
 
 // 
 // Base struct for coherent units.
@@ -117,8 +119,9 @@ struct Coherent_unit_base : Unit_fundament {
            typename U,
            template<prefix, typename> typename Un>
   requires std::is_same<typename U::Base, Base>::value
-  Coherent_unit_base(const Un<pf, U>, TU_TYPE value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
-  }
+  Coherent_unit_base(const Un<pf, U>, TU_TYPE value) noexcept : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {}
+
+  auto operator <=> (const Coherent_unit_base<p...>& other) const noexcept = default;
   
   static constexpr TU_TYPE base_multiplier{1.0f};
   static constexpr TU_TYPE base_add{0.0f};
