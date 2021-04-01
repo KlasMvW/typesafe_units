@@ -48,6 +48,7 @@ Current supported typesafe operations on units are:
 * Division (/)
 * Power to arbitrary floating point number (pow)
 * Square root (sqrt)
+* Comparison <, >, <=, >=, !=, ==.
 * Unit conversion (e.g. mK (milli Kelvin) to &deg;F (degrees Fahrenheit))
 
 ## Supported datatypes
