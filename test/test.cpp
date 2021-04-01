@@ -260,7 +260,7 @@ int main() {
       }
     );
 
-    Test<"Choherent_unit_base binary operator: /">(
+    Test<"Coherent_unit_base binary operator: /">(
       []<typename T>(T &t){
         auto value1 = (TU_TYPE)10.0f;
         auto value2 = (TU_TYPE)20.0f;
