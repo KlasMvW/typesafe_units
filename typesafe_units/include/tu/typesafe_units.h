@@ -579,6 +579,10 @@ struct hectare : Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, meter_squar
   using Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, meter_squared>::Base;
 };
 
+struct barn : Non_coherent_unit<(TU_TYPE)1.0e-28, (TU_TYPE)0.0, meter_squared> {
+  using Non_coherent_unit<(TU_TYPE)1.0e-28, (TU_TYPE)0.0, meter_squared>::Base;
+};
+
 //
 // Length
 //
