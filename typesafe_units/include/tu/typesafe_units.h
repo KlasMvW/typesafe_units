@@ -47,9 +47,9 @@ enum struct prefix {
 //  
 // Returns compile time calculation of 10^exp.
 // Examples:
-//   pow10<3> retruns 1000.0
-//   pow10<-3> returns 0.001
-//   pow<0> returns 1.0
+//   pow10<3>() retruns 1000.0
+//   pow10<-3>() returns 0.001
+//   pow<0>() returns 1.0
 // 
 template<int exp>
 constexpr TU_TYPE pow10() {
@@ -115,8 +115,8 @@ struct Coherent_unit_base : Unit_fundament {
   
   template<prefix pf,
            typename U,
-           template<prefix, typename> typename Un,
-           std::enable_if_t<std::is_same<typename U::Base, Base>::value>* = nullptr>
+           template<prefix, typename> typename Un>
+  requires std::is_same<typename U::Base, Base>::value
   Coherent_unit_base(const Un<pf, U>, TU_TYPE value) : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {
   }
   
@@ -241,10 +241,8 @@ template<prefix to_prefix,
          prefix from_prefix,
          typename From_unit,
          template<prefix, typename> typename Unit>
-typename std::enable_if_t<std::is_same<typename From_unit::Base,
-                                       typename To_unit::Base>::value,
-                                       Unit<to_prefix, To_unit>>
-convert_to(const Unit<from_prefix, From_unit>& from) {
+requires std::is_same<typename From_unit::Base, typename To_unit::Base>::value
+Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) {
   return {(from.base_value - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
 }
 
@@ -260,9 +258,8 @@ struct Unit : U::Base {
   constexpr Unit() : U::Base(*this, value) {};
   Unit(TU_TYPE v) : U::Base(*this, v), value(v) {};
   
-  template<typename V,
-           std::enable_if_t<std::is_same<typename V::Base, typename U::Base>::value>* = nullptr>
-  requires std::derived_from<V, Unit_fundament>
+  template<typename V>
+  requires (std::derived_from<V, Unit_fundament> && std::is_same<typename V::Base, typename U::Base>::value)
   Unit(const V& v) : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
   const TU_TYPE value{0.0};
 };
@@ -294,8 +291,8 @@ template<TU_TYPE... l_args,
          template<TU_TYPE...> typename R,
          TU_TYPE... lr_args,
          template<TU_TYPE...> typename L_op_R,
-         typename Op,
-         typename std::enable_if_t<sizeof...(l_args) == 0 && sizeof...(r_args) == 0>* = nullptr>
+         typename Op>
+requires (sizeof...(l_args) == 0 && sizeof...(r_args) == 0)
 L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op){
   return {};
 }
@@ -308,8 +305,8 @@ template<TU_TYPE lf,
          template<TU_TYPE, TU_TYPE...> typename R,
          TU_TYPE... lr_args,
          template<TU_TYPE...> typename L_op_R,
-         typename Op,
-         typename std::enable_if_t<sizeof...(l_args) == sizeof...(r_args)>* = nullptr>
+         typename Op>
+requires (sizeof...(l_args) == sizeof...(r_args))
 auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) {
   return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
 }
@@ -319,8 +316,8 @@ template<TU_TYPE L_first,
          TU_TYPE R_first,
          TU_TYPE... R_args,
          template<TU_TYPE, TU_TYPE...> typename L,
-         template<TU_TYPE, TU_TYPE...> typename R,
-         std::enable_if_t<sizeof...(L_args) == sizeof...(R_args)>* = nullptr>
+         template<TU_TYPE, TU_TYPE...> typename R>
+requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(),
                                                                                               R<R_args...>(),
                                                                                               L<L_first + R_first>(),
@@ -333,8 +330,8 @@ template<TU_TYPE L_first,
          TU_TYPE R_first,
          TU_TYPE... R_args,
          template<TU_TYPE, TU_TYPE...> typename L,
-         template<TU_TYPE, TU_TYPE...> typename R,
-         std::enable_if_t<sizeof...(L_args) == sizeof...(R_args)>* = nullptr>
+         template<TU_TYPE, TU_TYPE...> typename R>
+requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(),
                                                                                               R<R_args...>(),
                                                                                               L<L_first - R_first>(),
@@ -359,11 +356,6 @@ auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) {
 }
 
 //
-// Define mathematical operation:
-// pow<float exp>(Unit)
-//
-
-//
 // Apply a binary operation Op recusively to every template argument of U and a number n. 
 // Given U<a, b, c> and the number n, the returned type of the operation is U<Op(a,n), Op(b,n), Op(c,n)> 
 //
@@ -374,8 +366,8 @@ template<TU_TYPE... U_args,
          template<TU_TYPE...> typename U_op,
          TU_TYPE n,
          template<TU_TYPE> typename Num,
-         typename Op,
-         typename std::enable_if_t<sizeof...(U_args) == 0>* = nullptr>
+         typename Op>
+requires (sizeof...(U_args) == 0)
 U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op){
   return {};
 }
@@ -506,11 +498,10 @@ struct day : Non_coherent_unit<(TU_TYPE)24.0, (TU_TYPE)0.0, hour> {
   using Non_coherent_unit<(TU_TYPE)24.0, (TU_TYPE)0.0, hour>::Base;
 };
 
-
-
 //
 // Temperature
 //
+
 struct degree_celsius : Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin> {
   using Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>::Base;
 };
