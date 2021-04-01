@@ -257,12 +257,12 @@ Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) {
 template<prefix pf, typename U>
 requires std::derived_from<U, Unit_fundament>
 struct Unit : U::Base {
-  constexpr Unit() : U::Base(*this, value) {};
-  Unit(TU_TYPE v) : U::Base(*this, v), value(v) {};
+  Unit(TU_TYPE v) noexcept : U::Base(*this, v), value(v) {};
   
   template<typename V>
   requires (std::derived_from<V, Unit_fundament> && std::is_same<typename V::Base, typename U::Base>::value)
-  Unit(const V& v) : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
+  Unit(const V& v) noexcept : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
+
   const TU_TYPE value{0.0};
 };
 
@@ -270,21 +270,16 @@ struct Unit : U::Base {
 // Define binary operations +, -, *, and / for units.
 // 
 
-//
-// Not passing references supposedly makes code like a + b + c more optimized.
-//
 template<prefix pfl, prefix pfr, typename U>
-auto operator + (const Unit<pfl, U> l, const Unit<pfr, U> r)
+auto operator + (const Unit<pfl, U>& l, const Unit<pfr, U>& r) noexcept
 {
-  typename U::Base lr(l.base_value + r.base_value);
-  return lr; 
+  return U::Base(l.base_value + r.base_value);
 }
 
 template<prefix pfl, prefix pfr, typename U>
-auto operator - (const Unit<pfl, U> l, const Unit<pfr, U> r)
+auto operator - (const Unit<pfl, U>& l, const Unit<pfr, U>& r) noexcept
 {
-  typename U::Base lr(l.base_value - r.base_value);
-  return lr; 
+  return U::Base(l.base_value - r.base_value);
 }
 
 template<TU_TYPE... l_args,
