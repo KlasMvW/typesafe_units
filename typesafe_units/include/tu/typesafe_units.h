@@ -12,6 +12,7 @@
 #include <functional>
 #include <utility>
 #include <cmath>
+#include <compare>
 
 namespace tu {
 
