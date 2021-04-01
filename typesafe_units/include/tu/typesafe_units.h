@@ -52,7 +52,7 @@ enum struct prefix {
 //   pow<0>() returns 1.0
 // 
 template<int exp>
-constexpr TU_TYPE pow10() {
+constexpr TU_TYPE pow10() noexcept {
   if constexpr(exp > 0) {
     return pow10<exp - 1>() * 10.0f;
   }
@@ -70,7 +70,7 @@ constexpr TU_TYPE pow10() {
 //
 template<TU_TYPE e>
 struct powexp {
-    constexpr powexp() {};
+    constexpr powexp() noexcept {};
     static constexpr TU_TYPE exp = e;
 };
 
@@ -111,9 +111,9 @@ struct Unit_fundament{
 template<TU_TYPE... p>
 struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
-  Coherent_unit_base() {};
-  Coherent_unit_base(TU_TYPE v) : base_value(v){}
-  Coherent_unit_base(const Coherent_unit_base<p...>& u) : base_value(u.base_value){}
+  Coherent_unit_base() noexcept {};
+  Coherent_unit_base(TU_TYPE v) noexcept : base_value(v){}
+  Coherent_unit_base(const Coherent_unit_base<p...>& u) noexcept : base_value(u.base_value) {}
   
   template<prefix pf,
            typename U,
@@ -244,7 +244,7 @@ template<prefix to_prefix,
          typename From_unit,
          template<prefix, typename> typename Unit>
 requires std::is_same<typename From_unit::Base, typename To_unit::Base>::value
-Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) {
+Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) noexcept {
   return {(from.base_value - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
 }
 
@@ -290,7 +290,7 @@ template<TU_TYPE... l_args,
          template<TU_TYPE...> typename L_op_R,
          typename Op>
 requires (sizeof...(l_args) == 0 && sizeof...(r_args) == 0)
-L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op){
+L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op) noexcept {
   return {};
 }
 
@@ -304,7 +304,7 @@ template<TU_TYPE lf,
          template<TU_TYPE...> typename L_op_R,
          typename Op>
 requires (sizeof...(l_args) == sizeof...(r_args))
-auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) {
+auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
   return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
 }
 
@@ -315,10 +315,10 @@ template<TU_TYPE L_first,
          template<TU_TYPE, TU_TYPE...> typename L,
          template<TU_TYPE, TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(),
-                                                                                              R<R_args...>(),
-                                                                                              L<L_first + R_first>(),
-                                                                                              std::plus<TU_TYPE>())) {
+auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_args...>(),
+                                                                                                       R<R_args...>(),
+                                                                                                       L<L_first + R_first>(),
+                                                                                                       std::plus<TU_TYPE>())) {
   return {l.base_value * r.base_value}; 
 }
 
@@ -329,10 +329,10 @@ template<TU_TYPE L_first,
          template<TU_TYPE, TU_TYPE...> typename L,
          template<TU_TYPE, TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) -> decltype(binary_op_args(L<L_args...>(),
-                                                                                              R<R_args...>(),
-                                                                                              L<L_first - R_first>(),
-                                                                                              std::minus<TU_TYPE>())) {
+auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_args...>(),
+                                                                                                       R<R_args...>(),
+                                                                                                       L<L_first - R_first>(),
+                                                                                                       std::minus<TU_TYPE>())) {
   return {l.base_value / r.base_value}; 
 }
 
@@ -340,7 +340,7 @@ template<prefix pf_l,
          typename L,
          prefix pf_r,
          typename R>
-auto operator * (Unit<pf_l, L> ul, Unit<pf_r, R> ur) {
+auto operator * (Unit<pf_l, L> ul, Unit<pf_r, R> ur) noexcept {
   return static_cast<typename decltype(ul)::Base&>(ul) * static_cast<typename decltype(ur)::Base&>(ur);
 }
 
@@ -348,7 +348,7 @@ template<prefix pf_l,
          typename L,
          prefix pf_r,
          typename R>
-auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) {
+auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) noexcept {
   return static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur);
 }
 
@@ -365,7 +365,7 @@ template<TU_TYPE... U_args,
          template<TU_TYPE> typename Num,
          typename Op>
 requires (sizeof...(U_args) == 0)
-U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op){
+U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op) noexcept {
   return {};
 }
 
@@ -377,7 +377,7 @@ template<TU_TYPE U_first,
          TU_TYPE n,
          template<TU_TYPE> typename Num,
          typename Op>
-auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op op){
+auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
   return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
 }
 
