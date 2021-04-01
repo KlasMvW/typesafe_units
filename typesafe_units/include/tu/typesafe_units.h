@@ -120,12 +120,12 @@ struct Coherent_unit_base : Unit_fundament {
            typename U,
            template<prefix, typename> typename Un>
   requires std::is_same<typename U::Base, Base>::value
-  Coherent_unit_base(const Un<pf, U>, TU_TYPE value) noexcept : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_add) {}
+  Coherent_unit_base(const Un<pf, U>, TU_TYPE value) noexcept : base_value(value * U::base_multiplier * pow10<(int)pf>() + U::base_adder) {}
 
   auto operator <=> (const Coherent_unit_base<p...>& other) const noexcept = default;
   
   static constexpr TU_TYPE base_multiplier{1.0f};
-  static constexpr TU_TYPE base_add{0.0f};
+  static constexpr TU_TYPE base_adder{0.0f};
   const TU_TYPE base_value{0.0f};
 };
 
@@ -225,11 +225,11 @@ struct Coherent_unit: Coherent_unit_base<T::power, L::power, M::power, A::power,
 // Non-coherent units are coherent units with a prefix, conversion factor different from 1.0 or shift term different from 0.0.
 // The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit.
 // 
-template<TU_TYPE multiplier, TU_TYPE add, typename Parent_unit>
+template<TU_TYPE multiplier, TU_TYPE adder, typename Parent_unit>
 requires (std::derived_from<Parent_unit, Unit_fundament> && multiplier != (TU_TYPE)0.0)
 struct Non_coherent_unit : Parent_unit {
   static constexpr TU_TYPE base_multiplier = Parent_unit::base_multiplier * multiplier;
-  static constexpr TU_TYPE base_add = Parent_unit::base_add + add * multiplier;
+  static constexpr TU_TYPE base_adder = Parent_unit::base_adder + adder * multiplier;
   using Base = typename Parent_unit::Base;
 };
 
@@ -246,7 +246,7 @@ template<prefix to_prefix,
          template<prefix, typename> typename Unit>
 requires std::is_same<typename From_unit::Base, typename To_unit::Base>::value
 Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) noexcept {
-  return {(from.base_value - To_unit::base_add) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
+  return {(from.base_value - To_unit::base_adder) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
 }
 
 // 
@@ -262,7 +262,7 @@ struct Unit : U::Base {
   
   template<typename V>
   requires (std::derived_from<V, Unit_fundament> && std::is_same<typename V::Base, typename U::Base>::value)
-  Unit(const V& v) noexcept : U::Base(*this, v.base_value), value((v.base_value - U::base_add) * pow10<-(int)pf>() / U::base_multiplier ){}
+  Unit(const V& v) noexcept : U::Base(*this, v.base_value), value((v.base_value - U::base_adder) * pow10<-(int)pf>() / U::base_multiplier ){}
 
   const TU_TYPE value{0.0};
 };

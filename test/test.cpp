@@ -177,7 +177,7 @@ int main() {
     []<typename T>(T &t){
       auto fahrenheit = Non_coherent_unit<(TU_TYPE)(1.0f / 1.8f), -(TU_TYPE)32.0f, degree_celsius>();
       t.template assert<std::equal_to<>>(fahrenheit.base_multiplier, degree_celsius::base_multiplier * (TU_TYPE)(1.0f / 1.8f), __LINE__);
-      t.template assert<std::equal_to<>>(fahrenheit.base_add, (TU_TYPE)(-32.0f * 1.0f / 1.8f +  degree_celsius::base_add), __LINE__);
+      t.template assert<std::equal_to<>>(fahrenheit.base_adder, (TU_TYPE)(-32.0f * 1.0f / 1.8f +  degree_celsius::base_adder), __LINE__);
     }
   );
 
@@ -185,12 +185,12 @@ int main() {
     []<typename T>(T &t){
       Unit<prefix::milli, second> ms(5000.0f);
       Unit<prefix::no_prefix, minute> m = convert_to<prefix::no_prefix, minute>(ms);
-      t.template assert<std::equal_to<>>(m.value, (ms.base_value - minute::base_add) / minute::base_multiplier , __LINE__);
+      t.template assert<std::equal_to<>>(m.value, (ms.base_value - minute::base_adder) / minute::base_multiplier , __LINE__);
       t.template assert<near<>>(m.value, (TU_TYPE)(1.0f / 12.0f), __LINE__);
 
       Unit<prefix::milli, kelvin> mk(5000.0f);
       Unit<prefix::no_prefix, degree_fahrenheit> f = convert_to<prefix::no_prefix, degree_fahrenheit>(mk);
-      t.template assert<std::equal_to<>>(f.value, (mk.base_value - degree_fahrenheit::base_add) / degree_fahrenheit::base_multiplier , __LINE__);
+      t.template assert<std::equal_to<>>(f.value, (mk.base_value - degree_fahrenheit::base_adder) / degree_fahrenheit::base_multiplier , __LINE__);
       t.template assert<near<>>(f.value, (TU_TYPE)-450.67f, __LINE__);
 
       Unit<prefix::milli, kelvin> mk2 = convert_to<prefix::milli, kelvin>(f);
