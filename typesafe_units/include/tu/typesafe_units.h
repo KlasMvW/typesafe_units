@@ -535,7 +535,7 @@ struct dalton : Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilo
   using Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram>::Base;
 };
 
-struct u : Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram> {
+struct unified_atomic_mass_unit : Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram> {
   using Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram>::Base;
 };
 
