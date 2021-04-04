@@ -112,7 +112,7 @@ struct Unit_fundament{
 template<TU_TYPE... p>
 struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
-  Coherent_unit_base() noexcept {};
+  constexpr Coherent_unit_base() noexcept = default;
   Coherent_unit_base(TU_TYPE v) noexcept : base_value(v){}
   Coherent_unit_base(const Coherent_unit_base<p...>& u) noexcept : base_value(u.base_value) {}
   
