@@ -446,6 +446,30 @@ auto sqrt(U<U_args...> u){
   return pow<(TU_TYPE)0.5>(u);
 }
 
+//
+// Define `unop`. 
+// unop is a template function that applies any unary function that takes a TU_TYPE
+// and returns a TU_TYPE to the underlying value of the unit if it is a scalar unit e.g
+// radian or steradian. The function returns a scalar Coherent_unit_base initialized with
+// the value of the performed operation. This makes it possible to operate with any unary
+// function (subjected to the restrictions above) from the standard library on a Unit or
+// Coherent_unit_base.
+// Example:
+//  std::cout << unop<std::sin>(Unit<prefix::no_prefix, degree>(90)); // prints 1
+using Unary_op_func = TU_TYPE(*)(TU_TYPE);
+template<Unary_op_func op, prefix pf, typename U>
+requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::Base::is_scalar())
+auto unop(const Unit<pf, U>& u){
+  return U::Base(op(u.base_value));
+}
+
+template<Unary_op_func op, typename U>
+requires (std::derived_from<U, Unit_fundament> && U::is_scalar())
+auto unop(const U& u){
+  return U(op(u.base_value));
+}
+
+
 // 
 // Explicit definitions of coherent units.
 // 
