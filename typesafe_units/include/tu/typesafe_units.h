@@ -127,6 +127,10 @@ struct Coherent_unit_base : Unit_fundament {
   static constexpr TU_TYPE base_multiplier{1.0f};
   static constexpr TU_TYPE base_adder{0.0f};
   const TU_TYPE base_value{0.0f};
+
+  static constexpr bool is_scalar() {
+    return are_args_zero<p...>();
+  }
 };
 
 // 
@@ -266,6 +270,19 @@ struct Unit : U::Base {
 
   const TU_TYPE value{0.0};
 };
+
+template<TU_TYPE U_first, TU_TYPE... U_args>
+constexpr bool are_args_zero() noexcept {
+  if constexpr (U_first != (TU_TYPE)0.0) {
+    return false;
+  } else
+  if constexpr (sizeof...(U_args) > 0) {
+    return are_args_zero<U_args...>();
+  } else
+  if constexpr (sizeof...(U_args) == 0) {
+    return true;
+  }
+}
 
 // 
 // Define binary operations +, -, *, and / for units.
