@@ -300,18 +300,6 @@ auto operator - (const Unit<pfl, U>& l, const Unit<pfr, U>& r) noexcept
   return U::Base(l.base_value - r.base_value);
 }
 
-template<TU_TYPE... l_args,
-         template<TU_TYPE...> typename L,
-         TU_TYPE... r_args,
-         template<TU_TYPE...> typename R,
-         TU_TYPE... lr_args,
-         template<TU_TYPE...> typename L_op_R,
-         typename Op>
-requires (sizeof...(l_args) == 0 && sizeof...(r_args) == 0)
-constexpr L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op) noexcept {
-  return {};
-}
-
 template<TU_TYPE lf,
          TU_TYPE... l_args,
          template<TU_TYPE, TU_TYPE...> typename L,
@@ -323,7 +311,11 @@ template<TU_TYPE lf,
          typename Op>
 requires (sizeof...(l_args) == sizeof...(r_args))
 constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
-  return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
+  if constexpr (sizeof...(l_args) == 0 && sizeof...(r_args) == 0) {
+     return L_op_R<lr_args..., op(lf, rf)>();
+  } else {
+    return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
+  }
 }
 
 template<TU_TYPE L_first,
@@ -333,9 +325,9 @@ template<TU_TYPE L_first,
          template<TU_TYPE, TU_TYPE...> typename L,
          template<TU_TYPE, TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_args...>(),
-                                                                                                       R<R_args...>(),
-                                                                                                       L<L_first + R_first>(),
+auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_first, L_args...>(),
+                                                                                                       R<R_first, R_args...>(),
+                                                                                                       L<>(),
                                                                                                        std::plus<TU_TYPE>())) {
   return {l.base_value * r.base_value}; 
 }
@@ -347,9 +339,9 @@ template<TU_TYPE L_first,
          template<TU_TYPE, TU_TYPE...> typename L,
          template<TU_TYPE, TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_args...>(),
-                                                                                                       R<R_args...>(),
-                                                                                                       L<L_first - R_first>(),
+auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_first, L_args...>(),
+                                                                                                       R<R_first, R_args...>(),
+                                                                                                       L<>(),
                                                                                                        std::minus<TU_TYPE>())) {
   return {l.base_value / r.base_value}; 
 }
@@ -375,18 +367,6 @@ auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) noexcept {
 // Given U<a, b, c> and the number n, the returned type of the operation is U<Op(a,n), Op(b,n), Op(c,n)> 
 //
 
-template<TU_TYPE... U_args,
-         template<TU_TYPE...> typename U,
-         TU_TYPE... U_op_args,
-         template<TU_TYPE...> typename U_op,
-         TU_TYPE n,
-         template<TU_TYPE> typename Num,
-         typename Op>
-requires (sizeof...(U_args) == 0)
-constexpr U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op) noexcept {
-  return {};
-}
-
 template<TU_TYPE U_first,
          TU_TYPE... U_args,
          template<TU_TYPE, TU_TYPE...> typename U,
@@ -395,8 +375,12 @@ template<TU_TYPE U_first,
          TU_TYPE n,
          template<TU_TYPE> typename Num,
          typename Op>
-constexpr auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
-  return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
+constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
+  if constexpr (sizeof...(U_args) == 0) {
+    return U_op<U_op_args..., op(U_first, n)>();
+  } else {
+    return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
+  }
 }
 
 //
@@ -408,9 +392,9 @@ template<TU_TYPE exp,
          TU_TYPE... U_args,
          template<TU_TYPE, TU_TYPE...> typename U>
 requires std::derived_from<U<U_args...>, Unit_fundament>
-auto pow(U<U_first, U_args...> u) -> decltype(binary_op_args_num(U<U_args...>(),
+auto pow(U<U_first, U_args...> u) -> decltype(binary_op_args_num(U<U_first, U_args...>(),
                                                                  powexp<exp>(),
-                                                                 U<U_first * exp>(),
+                                                                 U<>(),
                                                                  std::multiplies<TU_TYPE>())) {
   return {std::pow(u.base_value, exp)};
 }
@@ -480,7 +464,6 @@ struct ampere: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>,
 struct kelvin: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)1.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct mole: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)1.0>, cd<(TU_TYPE)0.0>>{};
 struct candela: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>{};
-
 
 //
 // Dervived units with special names

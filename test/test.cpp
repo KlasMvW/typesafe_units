@@ -333,16 +333,6 @@ int main() {
           Coherent_unit_base<> lr;
           Coherent_unit_base<(TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
         }
-
-        //
-        // Base case
-        //
-        {
-          Coherent_unit_base<> l(2);
-          Coherent_unit_base<> r(3);
-          Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> lr;
-          decltype(lr) l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
-        }
     }
   );
 
@@ -351,11 +341,6 @@ int main() {
       Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0> l;
       Coherent_unit_base<> empty;
       Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0> r = binary_op_args_num(l, powexp<(TU_TYPE)2.0>(), empty, std::multiplies<TU_TYPE>());
-      
-      //
-      // Base case
-      //
-      decltype(l) r2 = binary_op_args_num(empty, powexp<(TU_TYPE)2.0>(), l, std::multiplies<TU_TYPE>());
     }
   );
 
