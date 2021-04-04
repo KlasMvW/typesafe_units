@@ -308,7 +308,7 @@ template<TU_TYPE... l_args,
          template<TU_TYPE...> typename L_op_R,
          typename Op>
 requires (sizeof...(l_args) == 0 && sizeof...(r_args) == 0)
-L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op) noexcept {
+constexpr L_op_R<lr_args...> binary_op_args(L<l_args...>, R<r_args...>, L_op_R<lr_args...>, Op) noexcept {
   return {};
 }
 
@@ -322,7 +322,7 @@ template<TU_TYPE lf,
          template<TU_TYPE...> typename L_op_R,
          typename Op>
 requires (sizeof...(l_args) == sizeof...(r_args))
-auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
+constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
   return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
 }
 
@@ -383,7 +383,7 @@ template<TU_TYPE... U_args,
          template<TU_TYPE> typename Num,
          typename Op>
 requires (sizeof...(U_args) == 0)
-U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op) noexcept {
+constexpr U_op<U_op_args...> binary_op_args_num(U<U_args...>, Num<n>, U_op<U_op_args...>, Op) noexcept {
   return {};
 }
 
@@ -395,7 +395,7 @@ template<TU_TYPE U_first,
          TU_TYPE n,
          template<TU_TYPE> typename Num,
          typename Op>
-auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
+constexpr auto binary_op_args_num(U<U_first, U_args...>, Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
   return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
 }
 
