@@ -49,6 +49,7 @@ Current supported typesafe operations on units are:
 * Power to arbitrary floating point number (pow)
 * Square root (sqrt)
 * Comparison <, >, <=, >=, !=, ==.
+* Unary operations on scalar units (e.g trigonometric function like `std::sin`),
 * Unit conversion (e.g. mK (milli Kelvin) to &deg;F (degrees Fahrenheit))
 
 ## Supported datatypes
