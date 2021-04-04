@@ -213,6 +213,23 @@ int main() {
       }
     );
 
+    Test<"is_scalar">(
+      []<typename T>(T &t){
+        TU_TYPE val = 0.0;
+        auto not_scalar = Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0>(val);
+        auto not_scalar2 = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)2.0>(val);
+        auto not_scalar3 = Coherent_unit_base<(TU_TYPE)1.0>(val);
+        auto scalar = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0>(val);
+        auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>(val);
+
+        t.assert_false(not_scalar.is_scalar(), __LINE__);
+        t.assert_false(not_scalar2.is_scalar(), __LINE__);
+        t.assert_false(not_scalar3.is_scalar(), __LINE__);
+        t.assert_true(scalar.is_scalar(), __LINE__);
+        t.assert_true(scalar2.is_scalar(), __LINE__);
+      }
+    );
+
     Test<"Unit three way operator <=>">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
@@ -375,6 +392,33 @@ int main() {
       Unit<prefix::milli, second> s(value1);
       Coherent_unit_base<(TU_TYPE)0.5, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> l = sqrt(s);
       t.template assert<near<>>(l.base_value, std::sqrt(value1) * std::pow((TU_TYPE)1e-3, (TU_TYPE)0.5), __LINE__);
+    }
+  );
+
+  Test<"unop Coherent_unit_base">(
+    []<typename T>(T &t) {
+        TU_TYPE val = 0.0;
+        auto scalar = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0>(val);
+        auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>((TU_TYPE)tu::PI/2.0);
+        
+        t.template assert<near<>>(unop<std::sin>(scalar).base_value, (TU_TYPE)0.0, __LINE__);
+        t.template assert<near<>>(unop<std::sin>(scalar2).base_value, (TU_TYPE)1.0, __LINE__);
+        t.template assert<near<>>(unop<std::sin>(std::move(scalar)).base_value, (TU_TYPE)0.0, __LINE__);
+        t.template assert<near<>>(unop<std::sin>(std::move(scalar2)).base_value, (TU_TYPE)1.0, __LINE__);
+    }
+  );
+
+    Test<"unop Unit">(
+    []<typename T>(T &t) {
+        TU_TYPE val = 90.0;
+        TU_TYPE val2 = 0.0;
+
+       Unit<prefix::no_prefix, degree> scalar_unit(val);
+       Unit<prefix::no_prefix, degree> scalar_unit2(val2);
+       t.template assert<near<>>(unop<std::sin>(scalar_unit).base_value, (TU_TYPE)1.0, __LINE__);
+       t.template assert<near<>>(unop<std::sin>(scalar_unit2).base_value, (TU_TYPE)0.0, __LINE__);
+       t.template assert<near<>>(unop<std::sin>(std::move(scalar_unit)).base_value, (TU_TYPE)1.0, __LINE__);
+       t.template assert<near<>>(unop<std::sin>(std::move(scalar_unit2)).base_value, (TU_TYPE)0.0, __LINE__);
     }
   );
 
