@@ -382,28 +382,42 @@ int main() {
 
   Test<"unop Coherent_unit_base">(
     []<typename T>(T &t) {
-        TU_TYPE val = 0.0;
-        auto scalar = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0>(val);
-        auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>((TU_TYPE)tu::PI/2.0);
-        
-        t.template assert<near<>>(unop<std::sin>(scalar).base_value, (TU_TYPE)0.0, __LINE__);
-        t.template assert<near<>>(unop<std::sin>(scalar2).base_value, (TU_TYPE)1.0, __LINE__);
-        t.template assert<near<>>(unop<std::sin>(std::move(scalar)).base_value, (TU_TYPE)0.0, __LINE__);
-        t.template assert<near<>>(unop<std::sin>(std::move(scalar2)).base_value, (TU_TYPE)1.0, __LINE__);
+      TU_TYPE val = 0.0;
+      auto scalar = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0>(val);
+      auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>((TU_TYPE)tu::PI/2.0);
+      
+      Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0> new_scalar = unop<std::sin>(scalar);
+      t.template assert<near<>>(unop<std::sin>(scalar).base_value, (TU_TYPE)0.0, __LINE__);
+      t.template assert<near<>>(unop<std::sin>(scalar2).base_value, (TU_TYPE)1.0, __LINE__);
+
+      auto lambda = [](TU_TYPE tu_type){
+        return tu_type + (TU_TYPE)1.0;
+      };
+
+      auto new_scalar_2 = unop<lambda>(scalar);
+      t.template assert<std::equal_to<>>(new_scalar_2.base_value, val + (TU_TYPE)1.0, __LINE__);
     }
   );
 
     Test<"unop Unit">(
     []<typename T>(T &t) {
-        TU_TYPE val = 90.0;
-        TU_TYPE val2 = 0.0;
+      TU_TYPE val = 90.0;
+      TU_TYPE val2 = 0.0;
 
-       Unit<prefix::no_prefix, degree> scalar_unit(val);
-       Unit<prefix::no_prefix, degree> scalar_unit2(val2);
-       t.template assert<near<>>(unop<std::sin>(scalar_unit).base_value, (TU_TYPE)1.0, __LINE__);
-       t.template assert<near<>>(unop<std::sin>(scalar_unit2).base_value, (TU_TYPE)0.0, __LINE__);
-       t.template assert<near<>>(unop<std::sin>(std::move(scalar_unit)).base_value, (TU_TYPE)1.0, __LINE__);
-       t.template assert<near<>>(unop<std::sin>(std::move(scalar_unit2)).base_value, (TU_TYPE)0.0, __LINE__);
+      Unit<prefix::no_prefix, degree> scalar_unit(val);
+      Unit<prefix::no_prefix, degree> scalar_unit2(val2);
+       
+      Unit<prefix::no_prefix, degree> new_scalar_unit = unop<std::sin>(scalar_unit);
+
+      t.template assert<near<>>(unop<std::sin>(scalar_unit).base_value, (TU_TYPE)1.0, __LINE__);
+      t.template assert<near<>>(unop<std::sin>(scalar_unit2).base_value, (TU_TYPE)0.0, __LINE__);
+
+      auto lambda = [](TU_TYPE tu_type){
+        return tu_type + (TU_TYPE)1.0;
+      };
+
+      auto new_scalar_2 = unop<lambda>(scalar_unit);
+      t.template assert<near<>>(new_scalar_2.base_value, scalar_unit.base_value + (TU_TYPE)1.0, __LINE__);
     }
   );
 

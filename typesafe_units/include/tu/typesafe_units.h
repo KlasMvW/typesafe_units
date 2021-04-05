@@ -437,12 +437,15 @@ auto sqrt(U<U_args...> u){
 // radian or steradian. The function returns a scalar Coherent_unit_base initialized with
 // the value of the performed operation. This makes it possible to operate with any unary
 // function (subjected to the restrictions above) from the standard library on a Unit or
-// Coherent_unit_base.
+// Coherent_unit_base. unop can take both unary functions and lambda expressions as
+// template parameter. 
+//
 // Example:
 //  std::cout << unop<std::sin>(Unit<prefix::no_prefix, degree>(90)); // prints 1
+//
 using Unary_op_func = TU_TYPE(*)(TU_TYPE);
 template<Unary_op_func op, prefix pf, typename U>
-requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::Base::is_scalar())
+requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar())
 auto unop(const Unit<pf, U>& u){
   return U::Base(op(u.base_value));
 }
@@ -453,6 +456,17 @@ auto unop(const U& u){
   return U(op(u.base_value));
 }
 
+template<typename op, prefix pf, typename U>
+requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar() && std::is_same_v<decltype(op), std::function<TU_TYPE(TU_TYPE)>>)
+auto unop(const Unit<pf, U>& u){
+  return U::Base(op(u.base_value));
+}
+
+template<typename op, typename U>
+requires (std::derived_from<U, Unit_fundament> && U::is_scalar() && std::is_same_v<decltype(op), std::function<TU_TYPE(TU_TYPE)>>)
+auto unop(const U& u){
+  return U(op(u.base_value));
+}
 
 // 
 // Explicit definitions of coherent units.
