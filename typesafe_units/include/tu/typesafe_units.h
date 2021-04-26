@@ -213,17 +213,33 @@ concept Candela_power = std::is_same<cd<Ty::power>, Ty>::value;
 
 // 
 // Struct that represents a coherent unit.
-// This can be more safely used than the base class since the template arguments
-// are constrained types.
+// This can be more safely used than the base class since the template
+// arguments are constrained types. The dimension symbols defined by ISO 80000
+// is used for the Concept parameters.
 // 
 template<Second_power T,
          Meter_power L,
          Kilogram_power M,
-         Ampere_power A,
-         Kelvin_power K,
-         Mole_power mol,
-         Candela_power cd>
-struct Coherent_unit: Coherent_unit_base<T::power, L::power, M::power, A::power, K::power, mol::power, cd::power>{};
+         Ampere_power I,
+         Kelvin_power Theta,
+         Mole_power N,
+         Candela_power J>
+struct Coherent_unit: Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power> {
+  Coherent_unit() = default;
+  Coherent_unit(const Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>& cb) : Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(cb) {}
+};
+
+namespace internal {
+//
+// Creates a Coherent unit from a Coherent_unit_base.
+// Quantities of base are assumed to be in the intended order.
+// Dimenisons are deduced from base.
+//
+template<TU_TYPE ts, TU_TYPE tm, TU_TYPE tkg, TU_TYPE tA, TU_TYPE tK, TU_TYPE tmol, TU_TYPE tcd>
+constexpr auto create_coherent_unit(const Coherent_unit_base<ts, tm, tkg, tA, tK, tmol, tcd>& cb) noexcept {
+  return Coherent_unit<s<ts>, m<tm>, kg<tkg>, A<tA>, K<tK>, mol<tmol>, cd<tcd>>(cb);
+}
+} // namespace internal
 
 // 
 // Non-coherent units are coherent units with a prefix, conversion factor different from 1.0 or shift term different from 0.0.
@@ -271,6 +287,7 @@ struct Unit : U::Base {
   const TU_TYPE value{0.0};
 };
 
+//namespace internal {
 template<TU_TYPE U_first, TU_TYPE... U_args>
 constexpr bool are_args_zero() noexcept {
   if constexpr (U_first != (TU_TYPE)0.0) {
@@ -283,21 +300,22 @@ constexpr bool are_args_zero() noexcept {
     return true;
   }
 }
+//}
 
 // 
 // Define binary operations +, -, *, and / for units.
 // 
 
-template<prefix pfl, prefix pfr, typename U>
-auto operator + (const Unit<pfl, U>& l, const Unit<pfr, U>& r) noexcept
-{
-  return U::Base(l.base_value + r.base_value);
+template<TU_TYPE... Args,
+         template<TU_TYPE...> typename T>
+auto operator + (T<Args...> l, T<Args...> r) noexcept {
+  return internal::create_coherent_unit(T<Args...>(l.base_value + r.base_value)); 
 }
 
-template<prefix pfl, prefix pfr, typename U>
-auto operator - (const Unit<pfl, U>& l, const Unit<pfr, U>& r) noexcept
-{
-  return U::Base(l.base_value - r.base_value);
+template<TU_TYPE... Args,
+         template<TU_TYPE...> typename T>
+auto operator - (T<Args...> l, T<Args...> r) noexcept {
+  return internal::create_coherent_unit(T<Args...>(l.base_value - r.base_value)); 
 }
 
 template<TU_TYPE lf,
@@ -312,7 +330,7 @@ template<TU_TYPE lf,
 requires (sizeof...(l_args) == sizeof...(r_args))
 constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
   if constexpr (sizeof...(l_args) == 0 && sizeof...(r_args) == 0) {
-     return L_op_R<lr_args..., op(lf, rf)>();
+     return internal::create_coherent_unit(L_op_R<lr_args..., op(lf, rf)>());
   } else {
     return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
   }
@@ -346,22 +364,6 @@ auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> d
   return {l.base_value / r.base_value}; 
 }
 
-template<prefix pf_l,
-         typename L,
-         prefix pf_r,
-         typename R>
-auto operator * (Unit<pf_l, L> ul, Unit<pf_r, R> ur) noexcept {
-  return static_cast<typename decltype(ul)::Base&>(ul) * static_cast<typename decltype(ur)::Base&>(ur);
-}
-
-template<prefix pf_l,
-         typename L,
-         prefix pf_r,
-         typename R>
-auto operator / (Unit<pf_l, L> ul, Unit<pf_r, R> ur) noexcept {
-  return static_cast<typename decltype(ul)::Base&>(ul) / static_cast<typename decltype(ur)::Base&>(ur);
-}
-
 //
 // Apply a binary operation Op recusively to every template argument of U and a number n. 
 // Given U<a, b, c> and the number n, the returned type of the operation is U<Op(a,n), Op(b,n), Op(c,n)> 
@@ -377,7 +379,7 @@ template<TU_TYPE U_first,
          typename Op>
 constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
   if constexpr (sizeof...(U_args) == 0) {
-    return U_op<U_op_args..., op(U_first, n)>();
+    return internal::create_coherent_unit(U_op<U_op_args..., op(U_first, n)>());
   } else {
     return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
   }
@@ -392,7 +394,7 @@ template<TU_TYPE exp,
          TU_TYPE... U_args,
          template<TU_TYPE, TU_TYPE...> typename U>
 requires std::derived_from<U<U_args...>, Unit_fundament>
-auto pow(U<U_first, U_args...> u) -> decltype(binary_op_args_num(U<U_first, U_args...>(),
+auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_first, U_args...>(),
                                                                  powexp<exp>(),
                                                                  U<>(),
                                                                  std::multiplies<TU_TYPE>())) {
@@ -406,8 +408,8 @@ template<TU_TYPE exp,
          prefix pf,
          typename U>
 requires std::derived_from<U, Unit_fundament>
-auto pow(Unit<pf, U> u) {
-  return pow<exp>(static_cast<typename decltype(u)::Base&>(u));
+auto pow(Unit<pf, U> u) noexcept {
+  return pow<exp>(static_cast<Unit<pf, U>::Base&>(u));
 }
 
 //
@@ -416,7 +418,7 @@ auto pow(Unit<pf, U> u) {
 template<prefix pf,
          typename U>
 requires std::derived_from<U, Unit_fundament>
-auto sqrt(Unit<pf, U> u) {
+auto sqrt(Unit<pf, U> u) noexcept {
     return pow<(TU_TYPE)0.5>(u);
 }
 
@@ -426,7 +428,7 @@ auto sqrt(Unit<pf, U> u) {
 template<TU_TYPE... U_args,
          template<TU_TYPE...> typename U>
 requires std::derived_from<U<U_args...>, Unit_fundament>
-auto sqrt(U<U_args...> u){
+auto sqrt(U<U_args...> u) noexcept {
   return pow<(TU_TYPE)0.5>(u);
 }
 
@@ -434,20 +436,21 @@ auto sqrt(U<U_args...> u){
 // Define `unop`. 
 // unop is a template function that applies any unary function that takes a TU_TYPE
 // and returns a TU_TYPE to the underlying value of the unit if it is a scalar unit e.g
-// radian or steradian. The function returns a scalar Coherent_unit_base initialized with
+// radian or steradian. The function returns a scalar Coherent_unit initialized with
 // the value of the performed operation. This makes it possible to operate with any unary
 // function (subjected to the restrictions above) from the standard library on a Unit or
-// Coherent_unit_base. unop can take both unary functions and lambda expressions as
+// Coherent_unit. unop can take both unary functions and lambda expressions as
 // template parameter. 
 //
 // Example:
 //  std::cout << unop<std::sin>(Unit<prefix::no_prefix, degree>(90)); // prints 1
 //
 using Unary_op_func = TU_TYPE(*)(TU_TYPE);
+
 template<Unary_op_func op, prefix pf, typename U>
 requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar())
 auto unop(const Unit<pf, U>& u){
-  return U::Base(op(u.base_value));
+  return internal::create_coherent_unit(U::Base(op(u.base_value)));
 }
 
 template<Unary_op_func op, typename U>
@@ -459,7 +462,7 @@ auto unop(const U& u){
 template<typename op, prefix pf, typename U>
 requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar() && std::is_same_v<decltype(op), std::function<TU_TYPE(TU_TYPE)>>)
 auto unop(const Unit<pf, U>& u){
-  return U::Base(op(u.base_value));
+  return internal::create_coherent_unit(U::Base(op(u.base_value)));
 }
 
 template<typename op, typename U>
@@ -554,7 +557,7 @@ struct gram : Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, kilogram> {
   using Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, kilogram>::Base;
 };
 
-struct metric_ton : Non_coherent_unit<(TU_TYPE)1000.0, (TU_TYPE)0.0, kilogram> {
+struct tonne : Non_coherent_unit<(TU_TYPE)1000.0, (TU_TYPE)0.0, kilogram> {
   using Non_coherent_unit<(TU_TYPE)1000.0, (TU_TYPE)0.0, kilogram>::Base;
 };
 
@@ -606,23 +609,16 @@ struct hectare : Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, meter_squar
   using Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, meter_squared>::Base;
 };
 
-struct barn : Non_coherent_unit<(TU_TYPE)1.0e-28, (TU_TYPE)0.0, meter_squared> {
-  using Non_coherent_unit<(TU_TYPE)1.0e-28, (TU_TYPE)0.0, meter_squared>::Base;
-};
-
 //
 // Length
 //
 
-struct astronomical_unit : Non_coherent_unit<(TU_TYPE)(149597870700.0), (TU_TYPE)0.0, meter> {
-  using Non_coherent_unit<(TU_TYPE)(149597870700.0), (TU_TYPE)0.0, meter>::Base;
+struct astronomical_unit : Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, meter> {
+  using Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, meter>::Base;
 };
 
-
-// Trigonometric functions
-
-// comparison fuction == < >
-
-// Vector quantities
+struct lightyear : Non_coherent_unit<(TU_TYPE)9460730472580800, (TU_TYPE)0.0, meter> {
+  using Non_coherent_unit<(TU_TYPE)9460730472580800, (TU_TYPE)0.0, meter>::Base;
+};
 
 } // namespace tu

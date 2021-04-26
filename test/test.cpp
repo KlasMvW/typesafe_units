@@ -198,6 +198,14 @@ int main() {
     }
   );
 
+  Test<"create_coherent_unit">(
+    []<typename T>(T &t){
+      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> cub;
+      auto cu = internal::create_coherent_unit(cub);
+      t.assert_true(std::is_same<decltype(cu), Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)3.0>, A<(TU_TYPE)4.0>, K<(TU_TYPE)5.0>, mol<(TU_TYPE)6.0>, cd<(TU_TYPE)7.0>>>::value, __LINE__);
+    }
+  );
+
     Test<"Unit">(
       []<typename T>(T &t){
         TU_TYPE value = (TU_TYPE)5.0f;
@@ -253,6 +261,31 @@ int main() {
       }
     );
 
+        Test<"Coherent_unit three way operator <=>">(
+      []<typename T>(T &t){
+        auto value1 = 10.0f;
+        auto value2 = 20000.0f;
+        //Unit<prefix::milli, second> s1(value1);
+        //Unit<prefix::micro, second> s2(value2);
+        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s1(value1);
+        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s2(value2);
+
+        t.assert_true(s1 < s2, __LINE__);
+        t.assert_false(s1 >= s2, __LINE__);
+        t.assert_false(s1 > s2, __LINE__);
+        t.assert_true(s1 != s2, __LINE__);
+        t.assert_false(s1 == s2, __LINE__);
+        t.assert_true(s1 <= s2, __LINE__);
+
+        t.assert_false(s2 < s2, __LINE__);
+        t.assert_true(s2 >= s2, __LINE__);
+        t.assert_false(s2 > s2, __LINE__);
+        t.assert_false(s2 != s2, __LINE__);
+        t.assert_true(s2 == s2, __LINE__);
+        t.assert_true(s2 <= s2, __LINE__);
+      }
+    );
+
     Test<"Unit binary operator: +">(
       []<typename T>(T &t){
         auto value1 = 10.0f;
@@ -260,20 +293,22 @@ int main() {
         Unit<prefix::milli, second> s1(value1);
         Unit<prefix::micro, second> s2(value2);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s12 = s1 + s2;
+        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s12 = s1 + s2;
         t.template assert<near<>>((TU_TYPE)30.0e-3f, s12.base_value, __LINE__);
       }
     );
 
     Test<"Unit binary operator: -">(
       []<typename T>(T &t){
-        auto value1 = 10.0f;
-        auto value2 = 20000.0f;
+        TU_TYPE value1 = 10.0;
+        TU_TYPE value2 = 20000.0;
         Unit<prefix::milli, second> s1(value1);
         Unit<prefix::micro, second> s2(value2);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s12 = s1 - s2;
+        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s12 = s1 - s2; 
         t.template assert<near<>>(-(TU_TYPE)10.0e-3f, s12.base_value, __LINE__);
+
+        auto s3 = s12 + s12;
       }
     );
 
@@ -281,83 +316,98 @@ int main() {
       []<typename T>(T &t){
         TU_TYPE value1 = 10.0;
         TU_TYPE value2 = 20.0;
-        Unit<prefix::milli, second> s(value1);
-        Unit<prefix::milli, ampere> a(value2);
-
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s * a;
+        Unit<prefix::milli, second> s1(value1);
+        Unit<prefix::milli, ampere> a1(value2);
+        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> sa = s1 * a1;
         t.template assert<near<>>(sa.base_value, value1 * value2 * (TU_TYPE)1.0e-6f, __LINE__);
       }
     );
 
     Test<"Unit binary operator: /">(
       []<typename T>(T &t){
-        auto value1 = (TU_TYPE)10.0f;
-        auto value2 = (TU_TYPE)20.0f;
-        Unit<prefix::milli, second> s(value1);
-        Unit<prefix::milli, ampere> a(value2);
+        TU_TYPE value1 = 10.0;
+        TU_TYPE value2 = 20.0;
+        Unit<prefix::milli, second> s1(value1);
+        Unit<prefix::milli, ampere> a1(value2);
 
-        Coherent_unit_base<1.0f,0.0f,0.0f,-1.0f,0.0f,0.0f,0.0f> sa = s / a;
+        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> sa = s1 / a1;
         t.template assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
       }
     );
 
-    Test<"Coherent_unit_base binary operator: *">(
+    Test<"Coherent_unit and Coherent_unit_base binary operator: *">(
       []<typename T>(T &t){
         TU_TYPE value1 = 10.0;
         TU_TYPE value2 = 20.0;
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s(value1);
-        Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> a(value2);
+        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s1(value1);
+        Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> a1(value2);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s * a;
+        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s1 * a1;
         t.template assert<std::equal_to<>>(sa.base_value, value1 * value2, __LINE__);
+      
+        auto s2 = internal::create_coherent_unit(s1);
+        auto a2 = internal::create_coherent_unit(a1);
+
+        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa2 = s2 * a2;
+        t.template assert<std::equal_to<>>(sa2.base_value, value1 * value2, __LINE__);
       }
     );
 
-    Test<"Coherent_unit_base binary operator: /">(
+    Test<"Coherent_unit and Coherent_unit_base binary operator: /">(
       []<typename T>(T &t){
         auto value1 = (TU_TYPE)10.0f;
         auto value2 = (TU_TYPE)20.0f;
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s(value1);
-        Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> a(value2);
+        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s1(value1);
+        Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> a1(value2);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)-1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s / a;
+        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)-1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s1 / a1;
         t.template assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
+      
+        auto s2 = internal::create_coherent_unit(s1);
+        auto a2 = internal::create_coherent_unit(a1);
+
+        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)-1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa2 = s2 / a2;
+        t.template assert<std::equal_to<>>(sa2.base_value, value1 / value2, __LINE__);
       }
     );
 
     Test<"binary_op_args">(
       []<typename T>(T ){
         {
-          Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0> l(2);
-          Coherent_unit_base<(TU_TYPE)6.0, (TU_TYPE)5.0, (TU_TYPE)4.0, (TU_TYPE)3.0, (TU_TYPE)2.0, (TU_TYPE)1.0> r(3);
+          Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> l(2);
+          Coherent_unit_base<(TU_TYPE)6.0, (TU_TYPE)5.0, (TU_TYPE)4.0, (TU_TYPE)3.0, (TU_TYPE)2.0, (TU_TYPE)1.0, (TU_TYPE)0.0> r(3);
           Coherent_unit_base<> lr;
-          Coherent_unit_base<(TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+          Coherent_unit_base<(TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+          Coherent_unit<s<(TU_TYPE)7.0>, m<(TU_TYPE)7.0>, kg<(TU_TYPE)7.0>, A<(TU_TYPE)7.0>, K<(TU_TYPE)7.0>, mol<(TU_TYPE)7.0>, cd<(TU_TYPE)7.0>> l_plus_r_c = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
         }
     }
   );
 
   Test<"binary_op_args_num">(
     []<typename T>(T ) {
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0> l;
+      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> l;
       Coherent_unit_base<> empty;
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0> r = binary_op_args_num(l, powexp<(TU_TYPE)2.0>(), empty, std::multiplies<TU_TYPE>());
+      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0, (TU_TYPE)14.0> r = binary_op_args_num(l, powexp<(TU_TYPE)2.0>(), empty, std::multiplies<TU_TYPE>());
+      Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)4.0>, kg<(TU_TYPE)6.0>, A<(TU_TYPE)8.0>, K<(TU_TYPE)10.0>, mol<(TU_TYPE)12.0>, cd<(TU_TYPE)14.0>> r2 = binary_op_args_num(l, powexp<(TU_TYPE)2.0>(), empty, std::multiplies<TU_TYPE>());
     }
   );
 
   Test<"pow Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE value = 3.0;
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0> r(value);
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0> l = pow<(TU_TYPE)2.0>(r);
+      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> r(value);
+      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0, (TU_TYPE)14.0> l = pow<(TU_TYPE)2.0>(r);
       t.template assert<std::equal_to<>>((TU_TYPE)pow(value, (TU_TYPE)2.0f), l.base_value, __LINE__);
+
+      Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)4.0>, kg<(TU_TYPE)6.0>, A<(TU_TYPE)8.0>, K<(TU_TYPE)10.0>, mol<(TU_TYPE)12.0>, cd<(TU_TYPE)14.0>> a = pow<(TU_TYPE)2.0>(r);
     }
   );
 
     Test<"pow Unit">(
     []<typename T>(T &t) {
       TU_TYPE value1 = (TU_TYPE)20.0f;
-      Unit<prefix::milli, second> s(value1);
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> l = pow<(TU_TYPE)2.0>(s);
+      Unit<prefix::milli, second> s1(value1);
+      Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> l = pow<(TU_TYPE)2.0>(s1);
       t.template assert<near<>>(l.base_value, (TU_TYPE)pow(value1, (TU_TYPE)2.0) * (TU_TYPE)1.0e-6f, __LINE__);
     }
   );
@@ -365,8 +415,8 @@ int main() {
     Test<"sqrt Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE value = 4.0;
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0> r(value);
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0> l = sqrt(r);
+      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0, (TU_TYPE)14.0> r(value);
+      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> l = sqrt(r);
       t.template assert<std::equal_to<>>(std::sqrt(value), l.base_value, __LINE__);
     }
   );
@@ -374,8 +424,8 @@ int main() {
   Test<"sqrt Unit">(
     []<typename T>(T &t) {
       TU_TYPE value1 = 20.0;
-      Unit<prefix::milli, second> s(value1);
-      Coherent_unit_base<(TU_TYPE)0.5, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> l = sqrt(s);
+      Unit<prefix::milli, second> s1(value1);
+      Coherent_unit<s<(TU_TYPE)0.5>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> l =  sqrt(s1);
       t.template assert<near<>>(l.base_value, std::sqrt(value1) * std::pow((TU_TYPE)1e-3, (TU_TYPE)0.5), __LINE__);
     }
   );
@@ -383,12 +433,12 @@ int main() {
   Test<"unop Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE val = 0.0;
-      auto scalar = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0>(val);
       auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>((TU_TYPE)tu::PI/2.0);
-      
-      Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0> new_scalar = unop<std::sin>(scalar);
+      auto scalar = Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>();
       t.template assert<near<>>(unop<std::sin>(scalar).base_value, (TU_TYPE)0.0, __LINE__);
       t.template assert<near<>>(unop<std::sin>(scalar2).base_value, (TU_TYPE)1.0, __LINE__);
+      
+      Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> scalar3 = unop<std::sin>(scalar);
 
       auto lambda = [](TU_TYPE tu_type){
         return tu_type + (TU_TYPE)1.0;
@@ -408,6 +458,8 @@ int main() {
       Unit<prefix::no_prefix, degree> scalar_unit2(val2);
        
       Unit<prefix::no_prefix, degree> new_scalar_unit = unop<std::sin>(scalar_unit);
+
+      Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> scalar3 = unop<std::sin>(scalar_unit);
 
       t.template assert<near<>>(unop<std::sin>(scalar_unit).base_value, (TU_TYPE)1.0, __LINE__);
       t.template assert<near<>>(unop<std::sin>(scalar_unit2).base_value, (TU_TYPE)0.0, __LINE__);
