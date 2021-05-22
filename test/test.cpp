@@ -440,11 +440,11 @@ int main() {
       
       Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> scalar3 = unop<std::sin>(scalar);
 
-      auto lambda = [](TU_TYPE tu_type){
+      constexpr auto lambda = [](TU_TYPE tu_type){
         return tu_type + (TU_TYPE)1.0;
       };
 
-      auto new_scalar_2 = unop<lambda>(scalar);
+      auto new_scalar_2 = unop<+lambda>(scalar);
       t.template assert<std::equal_to<>>(new_scalar_2.base_value, val + (TU_TYPE)1.0, __LINE__);
     }
   );
@@ -464,11 +464,11 @@ int main() {
       t.template assert<near<>>(unop<std::sin>(scalar_unit).base_value, (TU_TYPE)1.0, __LINE__);
       t.template assert<near<>>(unop<std::sin>(scalar_unit2).base_value, (TU_TYPE)0.0, __LINE__);
 
-      auto lambda = [](TU_TYPE tu_type){
+      constexpr auto lambda = [](TU_TYPE tu_type) {
         return tu_type + (TU_TYPE)1.0;
       };
 
-      auto new_scalar_2 = unop<lambda>(scalar_unit);
+      auto new_scalar_2 = unop<+lambda>(scalar_unit);
       t.template assert<near<>>(new_scalar_2.base_value, scalar_unit.base_value + (TU_TYPE)1.0, __LINE__);
     }
   );
