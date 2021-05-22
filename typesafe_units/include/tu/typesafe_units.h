@@ -341,8 +341,8 @@ template<TU_TYPE L_first,
          TU_TYPE... L_args,
          TU_TYPE R_first,
          TU_TYPE... R_args,
-         template<TU_TYPE, TU_TYPE...> typename L,
-         template<TU_TYPE, TU_TYPE...> typename R>
+         template<TU_TYPE...> typename L,
+         template<TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_first, L_args...>(),
                                                                                                        R<R_first, R_args...>(),
@@ -355,8 +355,8 @@ template<TU_TYPE L_first,
          TU_TYPE... L_args,
          TU_TYPE R_first,
          TU_TYPE... R_args,
-         template<TU_TYPE, TU_TYPE...> typename L,
-         template<TU_TYPE, TU_TYPE...> typename R>
+         template<TU_TYPE...> typename L,
+         template<TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_first, L_args...>(),
                                                                                                        R<R_first, R_args...>(),
@@ -393,7 +393,7 @@ constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Num<n>
 template<TU_TYPE exp,
          TU_TYPE U_first,
          TU_TYPE... U_args,
-         template<TU_TYPE, TU_TYPE...> typename U>
+         template<TU_TYPE...> typename U>
 requires std::derived_from<U<U_args...>, Unit_fundament>
 auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_first, U_args...>(),
                                                                  powexp<exp>(),
