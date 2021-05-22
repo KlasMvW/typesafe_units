@@ -451,7 +451,7 @@ using Unary_op_func = TU_TYPE(*)(TU_TYPE);
 template<Unary_op_func op, prefix pf, typename U>
 requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar())
 auto unop(const Unit<pf, U>& u){
-  return internal::create_coherent_unit(U::Base(op(u.base_value)));
+  return internal::create_coherent_unit(typename U::Base(op(u.base_value)));
 }
 
 template<Unary_op_func op, typename U>
@@ -461,13 +461,13 @@ auto unop(const U& u){
 }
 
 template<typename op, prefix pf, typename U>
-requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar() && std::is_same_v<decltype(op), std::function<TU_TYPE(TU_TYPE)>>)
+requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar() && std::is_same_v<op, std::function<TU_TYPE(TU_TYPE)>>)
 auto unop(const Unit<pf, U>& u){
   return internal::create_coherent_unit(U::Base(op(u.base_value)));
 }
 
 template<typename op, typename U>
-requires (std::derived_from<U, Unit_fundament> && U::is_scalar() && std::is_same_v<decltype(op), std::function<TU_TYPE(TU_TYPE)>>)
+requires (std::derived_from<U, Unit_fundament> && U::is_scalar() && std::is_same_v<op, std::function<TU_TYPE(TU_TYPE)>>)
 auto unop(const U& u){
   return U(op(u.base_value));
 }
