@@ -75,6 +75,22 @@ struct powexp {
     static constexpr TU_TYPE exp = e;
 };
 
+//namespace internal {
+template<TU_TYPE U_first, TU_TYPE... U_args>
+constexpr bool are_args_zero() noexcept {
+  if constexpr (U_first != (TU_TYPE)0.0) {
+    return false;
+  } else
+  if constexpr (sizeof...(U_args) > 0) {
+    return are_args_zero<U_args...>();
+  } else
+  if constexpr (sizeof...(U_args) == 0) {
+    return true;
+  }
+}
+//}
+
+
 // 
 // Fundamental base class for all units.
 // Since unit classes are templated this class makes it possible to constrain
@@ -286,21 +302,6 @@ struct Unit : U::Base {
 
   const TU_TYPE value{0.0};
 };
-
-//namespace internal {
-template<TU_TYPE U_first, TU_TYPE... U_args>
-constexpr bool are_args_zero() noexcept {
-  if constexpr (U_first != (TU_TYPE)0.0) {
-    return false;
-  } else
-  if constexpr (sizeof...(U_args) > 0) {
-    return are_args_zero<U_args...>();
-  } else
-  if constexpr (sizeof...(U_args) == 0) {
-    return true;
-  }
-}
-//}
 
 // 
 // Define binary operations +, -, *, and / for units.
