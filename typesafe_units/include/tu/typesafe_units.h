@@ -285,7 +285,7 @@ template<prefix to_prefix,
          template<prefix, typename> typename Unit>
 requires std::is_same<typename From_unit::Base, typename To_unit::Base>::value
 Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) noexcept {
-  return {(from.base_value - To_unit::base_adder) * pow10<-(int)to_prefix>() / To_unit::base_multiplier};
+  return {(from.base_value - To_unit::base_adder) * internal::pow10<-(int)to_prefix>() / To_unit::base_multiplier};
 }
 
 // 
