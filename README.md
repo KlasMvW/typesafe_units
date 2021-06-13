@@ -7,8 +7,8 @@
 TU is a C++ header-only library for typesafe unit operations. With TU you create instances of templated structs that represent units and operate on these instead of operating on numbers. 
 
 ```c++
-Unit<prefix::milli, Second> s(5.0f);
-Unit<prefix::micro, Ampere> a(10.0f);
+Unit<prefix::milli, second> s(5.0f);
+Unit<prefix::micro, ampere> a(10.0f);
 Unit<prefix::no_prefix, Coulomb> c = s * a;
 std::cout << c.value << std::endl; // prints 5e-08
 ```
@@ -16,28 +16,28 @@ std::cout << c.value << std::endl; // prints 5e-08
 TU also supports non-SI unit operations and conversions.
 
 ```c++
-Unit<prefix::no_prefix, Degree_celsius> c(0.0f);
-Unit<prefix::no_prefix, Degree_fahrenheit> f(c);
+Unit<prefix::no_prefix, degree_celsius> c(0.0f);
+Unit<prefix::no_prefix, degree_fahrenheit> f(c);
 std::cout << f.value << std::endl; //prints 32
 ```
 
 TU handles prefixes under the hood so you have complete freedom mixing prefixes.
 
 ```c++
-Unit<prefix::milli, Second> s1(20.0f);
-Unit<prefix::micro, Second> s2(30.0f);
-Unit<prefix::nano, Second> s3 = s1 + s2;
+Unit<prefix::milli, second> s1(20.0f);
+Unit<prefix::micro, second> s2(30.0f);
+Unit<prefix::nano, second> s3 = s1 + s2;
 std::cout << s3.value << std::endl; // prints 2.003e+07
 ```
 
 Attempts to initialize or operate on incompatible units will result in compilation failure.
 
 ```c++
-Unit<prefix::milli, Second> s(20.0f);
-Unit<prefix::micro, Ampere> a(10.0f);
+Unit<prefix::milli, second> s(20.0f);
+Unit<prefix::micro, ampere> a(10.0f);
 
 auto sa = s + a;                        // compilation failure 
-Unit<prefix::micro, Ampere> a2 = s * a; // compilation failure
+Unit<prefix::micro, ampere> a2 = s * a; // compilation failure
 ```
 
 Current supported typesafe operations on units are:
@@ -48,6 +48,8 @@ Current supported typesafe operations on units are:
 * Division (/)
 * Power to arbitrary floating point number (pow)
 * Square root (sqrt)
+* Comparison <, >, <=, >=, !=, ==.
+* Unary operations on scalar units (e.g trigonometric function like `std::sin`),
 * Unit conversion (e.g. mK (milli Kelvin) to &deg;F (degrees Fahrenheit))
 
 ## Supported datatypes
@@ -81,14 +83,11 @@ TU is a header-only library. To use TU in you project, simply include the header
 If you want to use TU as a CMake package you can use the CMake command `find_package` as follows and include the header by `#include "tu/typesafe_units.h"` 
 
 ```CMake
-project(my_project LANGUAGES CXX)
-
 #
 # The package is called TU. Include it with `find_package`.
 # If CMake does not find the package you can specify the path to the TU root as
-# a HINT. You are required to state the exact version of TU that you want
-# to use. <version> should be given on the format major.minor.patch
-# e.g. 1.2.3.
+# a HINT. You are required to state the exact version of TU that you want to
+# use. <version> should be given on the format major.minor.patch e.g. 1.2.3.
 #
 find_package(TU <version> REQUIRED HINTS "<absolute path to TU root>")
 
