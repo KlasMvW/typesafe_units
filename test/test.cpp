@@ -15,6 +15,7 @@
 #define RESET "\033[m"
 
 using namespace tu;
+using namespace tu::internal;
 
 template<typename T = TU_TYPE>
 struct near {

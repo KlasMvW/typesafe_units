@@ -45,6 +45,8 @@ enum struct prefix {
   yotta = 24,
 };
 
+
+namespace internal {
 //  
 // Returns compile time calculation of 10^exp.
 // Examples:
@@ -75,7 +77,6 @@ struct powexp {
     static constexpr TU_TYPE exp = e;
 };
 
-//namespace internal {
 template<TU_TYPE U_first, TU_TYPE... U_args>
 constexpr bool are_args_zero() noexcept {
   if constexpr (U_first != (TU_TYPE)0.0) {
@@ -88,8 +89,6 @@ constexpr bool are_args_zero() noexcept {
     return true;
   }
 }
-//}
-
 
 // 
 // Fundamental base class for all units.
@@ -100,6 +99,8 @@ constexpr bool are_args_zero() noexcept {
 struct Unit_fundament{
   auto operator <=> (const Unit_fundament& other) const noexcept = default;
 };
+
+
 
 // 
 // Base struct for coherent units.
@@ -160,47 +161,49 @@ struct Base_unit {
   static constexpr TU_TYPE power = p;
 };
 
+} // namespace internal
+
 // 
 // Struct representation of base unit s (second) with power p
 // 
 template<TU_TYPE p>
-struct s : Base_unit<p>{};
+struct s : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit m (meter) with power p
 // 
 template<TU_TYPE p>
-struct m : Base_unit<p>{};
+struct m : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit kg (kilogram) with power p
 // 
 template<TU_TYPE p>
-struct kg : Base_unit<p>{};
+struct kg : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit A (ampere) with power p
 // 
 template<TU_TYPE p>
-struct A : Base_unit<p>{};
+struct A : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit K (kelvin) with power p
 // 
 template<TU_TYPE p>
-struct K : Base_unit<p>{};
+struct K : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit mol (mole) with power p
 // 
 template<TU_TYPE p>
-struct mol : Base_unit<p>{};
+struct mol : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit cd (candela) with power p
 // 
 template<TU_TYPE p>
-struct cd : Base_unit<p>{};
+struct cd : internal::Base_unit<p>{};
 
 // 
 // Definition of `concepts`to be able to constrain the templated definitions
@@ -240,9 +243,9 @@ template<Second_power T,
          Kelvin_power Theta,
          Mole_power N,
          Candela_power J>
-struct Coherent_unit: Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power> {
+struct Coherent_unit: internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power> {
   Coherent_unit() = default;
-  Coherent_unit(const Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>& cb) : Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(cb) {}
+  Coherent_unit(const internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>& cb) : internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(cb) {}
 };
 
 namespace internal {
@@ -262,7 +265,7 @@ constexpr auto create_coherent_unit(const Coherent_unit_base<ts, tm, tkg, tA, tK
 // The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit.
 // 
 template<TU_TYPE multiplier, TU_TYPE adder, typename Parent_unit>
-requires (std::derived_from<Parent_unit, Unit_fundament> && multiplier != (TU_TYPE)0.0)
+requires (std::derived_from<Parent_unit, internal::Unit_fundament> && multiplier != (TU_TYPE)0.0)
 struct Non_coherent_unit : Parent_unit {
   static constexpr TU_TYPE base_multiplier = Parent_unit::base_multiplier * multiplier;
   static constexpr TU_TYPE base_adder = Parent_unit::base_adder + adder * multiplier;
@@ -292,13 +295,13 @@ Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) no
 //  Unit<prefix::nano, Second> s = 3.0; 
 // 
 template<prefix pf, typename U>
-requires std::derived_from<U, Unit_fundament>
+requires std::derived_from<U, internal::Unit_fundament>
 struct Unit : U::Base {
   Unit(TU_TYPE v) noexcept : U::Base(*this, v), value(v) {};
   
   template<typename V>
-  requires (std::derived_from<V, Unit_fundament> && std::is_same<typename V::Base, typename U::Base>::value)
-  Unit(const V& v) noexcept : U::Base(*this, v.base_value), value((v.base_value - U::base_adder) * pow10<-(int)pf>() / U::base_multiplier ){}
+  requires (std::derived_from<V, internal::Unit_fundament> && std::is_same<typename V::Base, typename U::Base>::value)
+  Unit(const V& v) noexcept : U::Base(*this, v.base_value), value((v.base_value - U::base_adder) * internal::pow10<-(int)pf>() / U::base_multiplier ){}
 
   const TU_TYPE value{0.0};
 };
@@ -306,7 +309,6 @@ struct Unit : U::Base {
 // 
 // Define binary operations +, -, *, and / for units.
 // 
-
 template<TU_TYPE... Args,
          template<TU_TYPE...> typename T>
 auto operator + (T<Args...> l, T<Args...> r) noexcept {
@@ -319,6 +321,7 @@ auto operator - (T<Args...> l, T<Args...> r) noexcept {
   return internal::create_coherent_unit(T<Args...>(l.base_value - r.base_value)); 
 }
 
+namespace internal {
 template<TU_TYPE lf,
          TU_TYPE... l_args,
          template<TU_TYPE, TU_TYPE...> typename L,
@@ -331,11 +334,12 @@ template<TU_TYPE lf,
 requires (sizeof...(l_args) == sizeof...(r_args))
 constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
   if constexpr (sizeof...(l_args) == 0 && sizeof...(r_args) == 0) {
-     return internal::create_coherent_unit(L_op_R<lr_args..., op(lf, rf)>());
+     return create_coherent_unit(L_op_R<lr_args..., op(lf, rf)>());
   } else {
     return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
   }
 }
+} // namespace internal
 
 template<TU_TYPE L_first,
          TU_TYPE... L_args,
@@ -344,10 +348,10 @@ template<TU_TYPE L_first,
          template<TU_TYPE...> typename L,
          template<TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_first, L_args...>(),
-                                                                                                       R<R_first, R_args...>(),
-                                                                                                       L<>(),
-                                                                                                       std::plus<TU_TYPE>())) {
+auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
+                                                                                                                 R<R_first, R_args...>(),
+                                                                                                                 L<>(),
+                                                                                                                 std::plus<TU_TYPE>())) {
   return {l.base_value * r.base_value}; 
 }
 
@@ -358,18 +362,18 @@ template<TU_TYPE L_first,
          template<TU_TYPE...> typename L,
          template<TU_TYPE...> typename R>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(binary_op_args(L<L_first, L_args...>(),
-                                                                                                       R<R_first, R_args...>(),
-                                                                                                       L<>(),
-                                                                                                       std::minus<TU_TYPE>())) {
+auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
+                                                                                                                 R<R_first, R_args...>(),
+                                                                                                                 L<>(),
+                                                                                                                 std::minus<TU_TYPE>())) {
   return {l.base_value / r.base_value}; 
 }
 
+namespace internal {
 //
 // Apply a binary operation Op recusively to every template argument of U and a number n. 
 // Given U<a, b, c> and the number n, the returned type of the operation is U<Op(a,n), Op(b,n), Op(c,n)> 
 //
-
 template<TU_TYPE U_first,
          TU_TYPE... U_args,
          template<TU_TYPE, TU_TYPE...> typename U,
@@ -386,6 +390,7 @@ constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Num<n>
   }
 }
 
+
 //
 // Use the `binary_op_args_num` template functions to perform pow<TU_TYPE>(U<TU_TYPE...>).
 // Binary operation is std::multiplies<TU_TYPES>. 
@@ -401,6 +406,8 @@ auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_fi
                                                                  std::multiplies<TU_TYPE>())) {
   return {std::pow(u.base_value, exp)};
 }
+}
+
 
 //
 // Template function for pow<TU_TYPE exp>(Unit<prefix, U>) returning the underlying "coherent" unit U::Base<a * exp, b * exp...>
@@ -408,7 +415,7 @@ auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_fi
 template<TU_TYPE exp,
          prefix pf,
          typename U>
-requires std::derived_from<U, Unit_fundament>
+requires std::derived_from<U, internal::Unit_fundament>
 auto pow(Unit<pf, U> u) noexcept {
   return pow<exp>(static_cast<Unit<pf, U>::Base&>(u));
 }
@@ -418,7 +425,7 @@ auto pow(Unit<pf, U> u) noexcept {
 //
 template<prefix pf,
          typename U>
-requires std::derived_from<U, Unit_fundament>
+requires std::derived_from<U, internal::Unit_fundament>
 auto sqrt(Unit<pf, U> u) noexcept {
     return pow<(TU_TYPE)0.5>(u);
 }
@@ -428,7 +435,7 @@ auto sqrt(Unit<pf, U> u) noexcept {
 //
 template<TU_TYPE... U_args,
          template<TU_TYPE...> typename U>
-requires std::derived_from<U<U_args...>, Unit_fundament>
+requires std::derived_from<U<U_args...>, internal::Unit_fundament>
 auto sqrt(U<U_args...> u) noexcept {
   return pow<(TU_TYPE)0.5>(u);
 }
@@ -449,13 +456,13 @@ auto sqrt(U<U_args...> u) noexcept {
 using Unary_op_func = TU_TYPE(*)(TU_TYPE);
 
 template<Unary_op_func op, prefix pf, typename U>
-requires (std::derived_from<U, Unit_fundament> && Unit<pf, U>::is_scalar())
+requires (std::derived_from<U, internal::Unit_fundament> && Unit<pf, U>::is_scalar())
 auto unop(const Unit<pf, U>& u){
   return internal::create_coherent_unit(typename U::Base(op(u.base_value)));
 }
 
 template<Unary_op_func op, typename U>
-requires (std::derived_from<U, Unit_fundament> && U::is_scalar())
+requires (std::derived_from<U, internal::Unit_fundament> && U::is_scalar())
 auto unop(const U& u){
   return U(op(u.base_value));
 }
