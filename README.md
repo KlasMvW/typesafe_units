@@ -1,4 +1,4 @@
-[![Windows](https://github.com/KlasMvW/typesafe_units/actions/workflows/cmake.yml/badge.svg)](https://github.com/KlasMvW/typesafe_units/actions/workflows/cmake.yml)
+[![CI - MSVC && GCC](https://github.com/KlasMvW/typesafe_units/actions/workflows/cmake.yml/badge.svg)](https://github.com/KlasMvW/typesafe_units/actions/workflows/cmake.yml)
 
 # TU - Typesafe Units
 
@@ -18,7 +18,7 @@ TU also supports non-SI unit operations and conversions.
 ```c++
 Unit<prefix::no_prefix, degree_celsius> c(0.0f);
 Unit<prefix::no_prefix, degree_fahrenheit> f(c);
-std::cout << f.value << std::endl; //prints 32
+std::cout << f.value << std::endl; // prints 32
 ```
 
 TU handles prefixes under the hood so you have complete freedom mixing prefixes.
@@ -60,7 +60,6 @@ By default TU uses single precision (`float`) as the underlying data type. To us
 target_compile_definitions(my_target PRIVATE TU_TYPE=double)
 ```
 
-
 ## Requirements
 
 TU requires a c++20 compliant compiler. Specifically TU utilizes float non-type template arguments. 
@@ -69,17 +68,17 @@ For the test suite that comes with TU to work, your system needs to have support
 
 ## Tested compilers
 
-TU has been confirmed to build with 
- * x64 msvc 19.28 (VS 16.9.0 cl 19.28.29910) /std:c++latest
- * arm64 msvc 19.28 (VS 16.9.0) /std:c++latest
- * x86-64 gcc (trunk 2021-03-21) -std=c++20
+TU is continuously built on Windows and Linux (Ubuntu) with MSVC and GCC respectively.
+For exact versions of tested compilers, please see the build logs of the github ci builds.
 
 ## Installation
 
 ### Include the header
+
 TU is a header-only library. To use TU in you project, simply include the header `typesafe_units/include/tu/typesafe_units.h`.
 
 ### CMake as package
+
 If you want to use TU as a CMake package you can use the CMake command `find_package` as follows and include the header by `#include "tu/typesafe_units.h"` 
 
 ```CMake
@@ -117,8 +116,19 @@ cmake --build . --config <build type>
 Run the test suite
 
 ```
-ctest -C <build type>
+ctest -V
 ```
+
+## Philosophy
+
+The aim of TU is to be
+
+* (type)safe
+  Easy to use
+  Explicit before implicit
+* compliant to definitions and guides of official bodies: NIST, CIPM
+  TU will not define units that are label as 'unacceptable' by NIST or other official bodies. 
+
 
 ## License
 
