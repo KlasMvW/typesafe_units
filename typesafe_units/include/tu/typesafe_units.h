@@ -406,7 +406,7 @@ auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_fi
                                                                  std::multiplies<TU_TYPE>())) {
   return {std::pow(u.base_value, exp)};
 }
-}
+} //namespace internal
 
 
 //
