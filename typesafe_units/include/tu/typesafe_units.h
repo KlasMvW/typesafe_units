@@ -7,7 +7,6 @@
 #   define TU_TYPE float
 #endif
 
-#include <iostream>
 #include <type_traits>
 #include <functional>
 #include <utility>
@@ -160,7 +159,6 @@ template<TU_TYPE p>
 struct Base_unit {
   static constexpr TU_TYPE power = p;
 };
-
 } // namespace internal
 
 // 

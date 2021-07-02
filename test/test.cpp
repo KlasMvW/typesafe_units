@@ -4,6 +4,7 @@
 #include <variant>
 #include <algorithm>
 #include <typeinfo>
+#include <iostream>
 
 #include "tu/typesafe_units.h"
 
