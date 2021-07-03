@@ -539,10 +539,6 @@ struct degree_Celsius : Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>
   using Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>::Base;
 };
 
-struct degree_Fahrenheit : Non_coherent_unit<(TU_TYPE)(1.0/1.8), (TU_TYPE)-32.0, degree_Celsius> {
-  using Non_coherent_unit<(TU_TYPE)(1.0/1.8), (TU_TYPE)-32.0f, degree_Celsius>::Base;
-};
-
 //
 // Mass
 //
