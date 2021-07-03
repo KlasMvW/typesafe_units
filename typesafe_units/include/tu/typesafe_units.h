@@ -120,7 +120,7 @@ struct Unit_fundament{
 // 
 // Example:
 //   Coherent_unit_base<-1, 1, 0, 0, 0, 0, 0> represents the coherent SI unit
-//   "meter per second".
+//   "metre per second".
 //   
 //   Coherent_unit_base<-2, 1, 1, 0, 0, 0, 0> represents the coherent SI unit
 //   Newton (kg * m / s^2).   
@@ -168,7 +168,7 @@ template<TU_TYPE p>
 struct s : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit m (meter) with power p
+// Struct representation of base unit m (metre) with power p
 // 
 template<TU_TYPE p>
 struct m : internal::Base_unit<p>{};
@@ -211,7 +211,7 @@ template<typename Ty>
 concept Second_power = std::is_same<s<Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Meter_power = std::is_same<m<Ty::power>, Ty>::value;
+concept Metre_power = std::is_same<m<Ty::power>, Ty>::value;
 
 template<typename Ty>
 concept Kilogram_power = std::is_same<kg<Ty::power>, Ty>::value;
@@ -235,7 +235,7 @@ concept Candela_power = std::is_same<cd<Ty::power>, Ty>::value;
 // is used for the Concept parameters.
 // 
 template<Second_power T,
-         Meter_power L,
+         Metre_power L,
          Kilogram_power M,
          Ampere_power I,
          Kelvin_power Theta,
@@ -469,7 +469,7 @@ auto unop(const U& u){
 // Explicit definitions of coherent units.
 // 
 struct second : Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct meter : Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+struct metre : Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct kilogram: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct ampere: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct kelvin: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)1.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
@@ -505,10 +505,10 @@ struct volt : Coherent_unit<s<(TU_TYPE)-3.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>,
 //
 // Derived coherent units
 //
-struct meter_per_second : Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+struct metre_per_second : Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct second_squared : Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct meter_cubed: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)3.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct meter_squared: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+struct metre_cubed: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)3.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+struct metre_squared: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 
 
 //
@@ -575,8 +575,8 @@ struct electronvolt : Non_coherent_unit<(TU_TYPE)1.602176634e-19, (TU_TYPE)0.0, 
 // Volume
 //
 
-struct liter : Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, meter_cubed> {
-  using Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, meter_cubed>::Base;
+struct litre : Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, metre_cubed> {
+  using Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, metre_cubed>::Base;
 };
 
 //
@@ -599,20 +599,15 @@ struct arc_second : Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, arc_minut
 // Area
 //
 
-struct hectare : Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, meter_squared> {
-  using Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, meter_squared>::Base;
+struct hectare : Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, metre_squared> {
+  using Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, metre_squared>::Base;
 };
 
 //
 // Length
 //
 
-struct astronomical_unit : Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, meter> {
-  using Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, meter>::Base;
+struct astronomical_unit : Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, metre> {
+  using Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, metre>::Base;
 };
-
-struct lightyear : Non_coherent_unit<(TU_TYPE)9460730472580800, (TU_TYPE)0.0, meter> {
-  using Non_coherent_unit<(TU_TYPE)9460730472580800, (TU_TYPE)0.0, meter>::Base;
-};
-
 } // namespace tu
