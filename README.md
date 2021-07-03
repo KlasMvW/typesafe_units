@@ -123,12 +123,10 @@ ctest -V
 
 The aim of TU is to be
 
+* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau Interbational des Poids et Mesures (BIPM). See [link](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
 * (type)safe
-  Easy to use
-  Explicit before implicit
-* compliant to definitions and guides of official bodies: NIST, CIPM
-  TU will not define units that are label as 'unacceptable' by NIST or other official bodies. 
-
+* easy to use
+* light weight
 
 ## License
 

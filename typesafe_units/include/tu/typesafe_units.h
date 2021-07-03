@@ -501,7 +501,6 @@ struct henry: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>,
 struct tesla: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct volt : Coherent_unit<s<(TU_TYPE)-3.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 
-
 //
 // Derived coherent units
 //
