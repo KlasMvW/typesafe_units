@@ -9,11 +9,20 @@ TU is a C++ header-only library for typesafe unit operations. With TU you create
 ```c++
 Unit<prefix::milli, second> s(5.0f);
 Unit<prefix::micro, ampere> a(10.0f);
-Unit<prefix::no_prefix, Coulomb> c = s * a;
+Unit<prefix::no_prefix, coulomb> c = s * a;
 std::cout << c.value << std::endl; // prints 5e-08
 ```
 
-TU also supports non-SI unit operations and conversions.
+If you need a non-SI unit you define it by declaring a simple struct. This is how you would define the unit
+`degree_Fahrenheit`:
+
+```c++
+  struct degree_Fahrenheit : Non_coherent_unit<1.0f / 1.8f, -32.0f, degree_Celsius> {
+    using Non_coherent_unit<1.0f / 1.8f, -32.0f, degree_Celsius>::Base;
+  };
+```
+
+You can use the new unit like any other unit already defined in TU:
 
 ```c++
 Unit<prefix::no_prefix, degree_celsius> c(0.0f);
@@ -110,20 +119,23 @@ TU comes with its own test suite. It does not rely on any externa testing tool. 
 The following instruction assumes that you do an out of source build in a directory under the repository root.
 
 ```bat
-cmake .. -G "Visual Studio 16 2019" -A x64
+cmake .. -G <generator>
 cmake --build . --config <build type>  
 ```
+
 Run the test suite
 
 ```
 ctest -V
 ```
 
+The test suite test TU for both float and double as underlying datatype.
+
 ## Philosophy
 
 The aim of TU is to be
 
-* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau Interbational des Poids et Mesures (BIPM). See [link](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
+* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau Interbational des Poids et Mesures (BIPM). See [link to bimp.org](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
 * (type)safe
 * easy to use
 * light weight
@@ -131,4 +143,6 @@ The aim of TU is to be
 ## License
 
 TU is released under the MIT license. https://mit-license.org/
+
+## Detailed description
 
