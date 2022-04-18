@@ -299,7 +299,7 @@ struct Unit : U::Base {
   
   template<typename V>
   requires (std::derived_from<V, internal::Unit_fundament> && std::is_same<typename V::Base, typename U::Base>::value)
-  Unit(const V& v) noexcept : U::Base(*this, v.base_value), value((v.base_value - U::base_adder) * internal::pow10<-(int)pf>() / U::base_multiplier ){}
+  Unit(const V& v) noexcept : U::Base(*this, (v.base_value - U::base_adder) * internal::pow10<-(int)pf>() / U::base_multiplier), value((v.base_value - U::base_adder) * internal::pow10<-(int)pf>() / U::base_multiplier){}
 
   const TU_TYPE value{0.0};
 };

@@ -224,8 +224,18 @@ int main() {
         Unit<prefix::no_prefix, second> s(value);
         t.template assert<std::equal_to<>>(s.value, value, __LINE__);
 
+        Unit<prefix::no_prefix, second> s2 = value;
+        t.template assert<std::equal_to<>>(s2.value, value, __LINE__); 
+
         Unit<prefix::no_prefix, minute> m(s);
         t.template assert<std::equal_to<>>(m.value, (TU_TYPE)5.0f / (TU_TYPE)60.0f, __LINE__);
+
+        Unit<prefix::kilo, second> ks = m + s;
+        
+        t.template assert<near<>>(ks.value, (TU_TYPE)0.01f, __LINE__);
+
+        Unit<prefix::kilo, second> ks2(m + s);
+        t.template assert<near<>>(ks2.value, (TU_TYPE)0.01f, __LINE__);
 
         Unit<prefix::milli, degree_Celsius> c((TU_TYPE)5000.0f);
         Unit<prefix::no_prefix, degree_Fahrenheit> f(c);
