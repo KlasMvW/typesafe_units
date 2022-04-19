@@ -99,8 +99,6 @@ struct Unit_fundament{
   auto operator <=> (const Unit_fundament& other) const noexcept = default;
 };
 
-
-
 // 
 // Base struct for coherent units.
 // The variadic TU_TYPE arguments simplifies binary operations of units.
@@ -449,7 +447,7 @@ auto sqrt(U<U_args...> u) noexcept {
 // template parameter. 
 //
 // Example:
-//  std::cout << unop<std::sin>(Unit<prefix::no_prefix, degree>(90)); // prints 1
+//  std::cout << unop<std::sin>(Unit<prefix::no_prefix, degree>(90)).base_value; // prints 1
 //
 using Unary_op_func = TU_TYPE(*)(TU_TYPE);
 

@@ -53,11 +53,11 @@ Current supported typesafe operations on units are:
 
 * Addition (+)
 * Subtraction (-)
-* Multiplication (*)
+* Multiplication (\*)
 * Division (/)
 * Power to arbitrary floating point number (pow)
 * Square root (sqrt)
-* Comparison <, >, <=, >=, !=, ==.
+* Comparison <, >, \<=, >=, !=, ==.
 * Unary operations on scalar units (e.g trigonometric function like `std::sin`),
 * Unit conversion (e.g. mK (milli Kelvin) to &deg;F (degrees Fahrenheit))
 
@@ -146,3 +146,290 @@ TU is released under the MIT license. https://mit-license.org/
 
 ## Detailed description
 
+### Types
+
+The intrinsic data type used by TU is defined in the preprocessor macro `TU_TYPE`.
+`TU_TYPE` can be `float` or `double`. All values and floting point template argumets will have the type defined by `TU_TYPE`.
+
+### Namespaces
+The main namespace of TU is `tu`.
+Functionality inside `tu` that is located in the namespace `internal` is not public and should only be used implicitly by public classes and methods.
+ 
+### Classes and structs
+
+#### s, m, kg, A, K, mol, cd
+
+These are the base units with floting point template arguments that determins the power of the base unit.
+The base units are used to build `Coherent_unit`s
+
+The definition of each base unit looks as follws where the unit is denoted `X`.
+
+```c++
+template<TU_TYPE p>
+struct X : internal::Base_unit<p>{};
+```
+
+The base unit `per_second` can be declared through
+
+```c++
+s<(TU_TYPE)-1.0f>;
+```
+
+#### Coherent_unit
+
+The `Coherent_unit` struct represents a unit that is a multiple of all base units: s, m, kg, A, K, mol and cd.
+A specific coherent unit should be defined by inheriting from a `Coherent_unit`
+
+The specific coherent unit `newton` is defined as
+
+```c++
+struct newton: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+```
+
+i.e. it has the unit `kg m / s^2`
+
+Note that computations using seconds should use the `Coherent_unit` `second` and not the base unit `s`.
+
+`second` is defined as
+
+```c++
+struct second: Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+```
+All base units are defined as `Coherent_unit`s in similar fashion.
+
+#### Non_coherent_unit
+
+A `Non_coherent_unit` is a unit that is scaled or shifted relative to a base unit. The value of the `Non_coherent_unit` is related to the value of the base unit through `v = a * b + c` where `v` is the value of the `Non_coherent_unit`, `b` is the value of the base unit. `a` and `c` are the scaling and shift respectively.
+
+Example of `Non_coherent_unit`s are `minute`, `hour` and `degree_Celcius`.
+
+A `Non_coherent_unit` is a templated struct that has the scaling factor, the shift and the base unit as template parameters.
+
+`minute` and `hour` are defined by
+
+```c++
+struct minute : Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second> {
+  using Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second>::Base;
+};
+
+struct hour : Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute> {
+  using Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute>::Base;
+};
+```
+`degree_Celsius` is defined by
+
+```c++
+struct degree_Celsius : Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin> {
+  using Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>::Base;
+};
+```
+
+The `using` statement is of internal concern only. If new `Non_coherent_unit`s are created, just follow the pattern.
+
+#### Unit
+
+The `Unit` is the intended public unit type.
+It is a templated struct with a prefix and a unit as template parameters.
+
+A unit variable, `u`, is declared by
+
+```c++
+Unit<prefix, unit> u;
+```
+
+where prefix is one of the prefix types defined in the enum struct `prefix` and unit is a `Coherent_unit` or a `Non_coherent_unit`.
+
+A `Unit` can be constructed from a value of type `TU_TYPE` or from another unit of the same type of unit.
+
+A unit representing 5 nano seconds is created by
+
+```c++
+Unit<prefix::milli, second> ms(5);
+```
+
+This can in turn be used to create a new unit variable.
+
+```c++
+Unit<prefix::no_prefix, minute> mi(ms)
+```
+
+The values of `ms` and `mi` are obtained through the `value` member.
+
+```
+std::cout << ms.value << " " << mi.value << std::endl; // prints 5.0 8.3333e-5
+```
+
+### Prefixes
+
+The following prefixes are defined and can be used when creating `Unit`s.
+
+* yocto = 10<sup>-24</sup>
+* zepto = 10<sup>-21</sup>
+* atto = 10<sup>-18</sup>
+* femto = 10<sup>-15</sup>
+* pico = 10<sup>-12</sup>
+* nano = 10<sup>-9</sup>
+* micro = 10<sup>-6</sup>
+* milli = 10<sup>-3</sup>
+* centi = 10<sup>-2</sup>
+* deci = 10<sup>-1</sup>
+* no_prefix = 10<sup>0</sup>
+* deca = 10<sup>1</sup>
+* hecto = 10<sup>2</sup>
+* kilo = 10<sup>3</sup>
+* mega = 10<sup>6</sup>
+* giga = 10<sup>9</sup>
+* terra = 10<sup>12</sup>
+* peta = 10<sup>15</sup>
+* exa = 10<sup>18</sup>
+* zetta = 10<sup>21</sup>
+* yotta = 10<sup>24</sup>
+
+### Functions
+
+#### convert_to
+
+The `convert_to` function converts one unit variable to a different unit (of same basic type)
+
+It is defined by
+
+```c++
+template<prefix to_prefix,
+         typename To_unit,
+         prefix from_prefix,
+         typename From_unit,
+         template<prefix, typename> typename Unit>
+requires std::is_same<typename From_unit::Base, typename To_unit::Base>::value
+Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) noexcept
+```
+
+An example of usage could be
+
+```c++
+Unit<prefix::no_prefix, Minute> m(1.0f);
+std::cout << tu::convert_to<prefix::milli,Second>(m).value << std::endl; // prints 60000.0
+```
+### Operators
+
+#### + - 
+
+TU supports the binary operators `+` and `-` (addition and subtraction) on units. Conversions are handled under the hood of TU.
+
+```c++
+Unit<prefix::no_prefix, minute> mi(5.0f);
+Unit<prefix::no_prefix, hour> h(1.0f);
+Unit<prefix::milli, second> ms = h + mi;
+std::cout << ms.value << std::endl; // prints 3.9e6
+```
+Note that the result of the `+` and `-` operators on units is not a `Unit` but a `Coherent_unit`. If we instead would do
+
+```c++
+Unit<prefix::no_prefix, minute> mi(5.0f);
+Unit<prefix::no_prefix, hour> h(1.0f);
+auto cu = h + mi;
+std::cout << cu.base_value << std::endl; // prints 3900.0
+```
+
+This is because TU does not know what `Unit` to construct from the operation. TU falls back on the fundamental `Coherent_unit`s and `cu` will be of type
+
+```c++
+Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>;
+```
+
+Note also that `Coherent_unit` does not have a `value` member but only a `base_value`
+
+If we would like a specific `Unit` representation of the operation, we have to explicitly state the `Unit` as in the first example and the result of the operation will be used to construct the desired `Unit`.
+
+Applying the `+` and `-` operators on `Unit`s that dont have the same underlying `Coherent_unit` will result in compilation failure e.g. it is not possible to add to variables of type `newton` and `second`. 
+
+#### \* /
+
+TU supports the binary operators `*` and `/` (multiplication and division).
+
+```c++
+Unit<prefix::milli, second> s(5.0f);
+Unit<prefix::micro, ampere> a(10.0f);
+Unit<prefix::micro, coulomb> c = s * a;
+std::cout << c.value << std::endl; // prints 5e-02
+```
+
+Note that the result of the `*` and `/` operators on units is not a `Unit` but a `Coherent_unit`. If we instead would do
+
+```c++
+Unit<prefix::milli, second> s(5.0f);
+Unit<prefix::micro, ampere> a(10.0f);
+auto cu = s * a;
+std::cout << cu.base_value << std::endl; // prints 5e-08
+```
+
+This is because TU does not know what `Unit` to construct from the operation. TU falls back on the fundamental `Coherent_units` and `cu` will be of type
+
+```c++
+Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>;
+```
+
+Note also that `Coherent_unit` does not have a `value` member but only a `base_value`
+
+If we would like a specific `Unit` representation of the operation, we have to explicitly state the `Unit` as in the first example and the result of the operation will be used to construct the desired `Unit`.
+
+Note that trying to create a Unit that does not have the correct `Coherent_unit` base would result in compilation failure.
+
+#### pow
+
+TU implements a `pow` operator for units.
+
+```c++
+Unit<prefix::milli, metre> me(5.0f);
+auto ch = pow<2.0f>(me);
+std::cout << ch.base_value << std::endl; // prints 2.5 * 10^-5
+```
+
+`ch` will be of type
+
+```c++
+Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>;
+```
+
+To construc a `Unit` directly we could do
+
+```c++
+Unit<prefix::milli, metre> me(5.0f);
+Unit<prefix::milli, metre_squared> m2 = pow<2.0f>(me);
+std::cout << m2.value << std::endl; // prints 2.5 * 10^-2
+```
+
+Note that `Unit<prefix::milli, metre_squared>` means 10<sup>-3</sup>m<sup>2
+</sup> and not </sup>(mm)<sup>2</sup>
+
+To the unit </sup>(mm)<sup>2</sup> is equivavlent to `Unit<prefix::micro, metre_squared>`
+
+Note that the power is not restricted to integers.
+
+#### sqrt
+
+The operation
+
+```c++
+sqrt(unit).
+```
+is equivialent to 
+
+```c++
+pow<0.5>(unit).
+```
+
+Not that since TU uses floating point powers, it is not guaranteed that applying first `pow<2.0>` and the `sqrt` on a unit would yield the exact unit back.
+
+#### unop
+
+TU supports unary operations on scalar units i.e. units where all basic unit powers are `0`. Examples of scalar units is `radian` and `degree`.
+
+`unop` is a template function that applies any unary function that takes a TU_TYPE
+and returns a TU_TYPE to the underlying value of the unit if it is a scalar unit. The function returns a scalar Coherent_unit initialized with the value of the performed operation. This makes it possible to operate with any unary function (subjected to the restrictions above) from the standard library on a Unit or Coherent_unit. unop can take both unary functions and lambda expressions as template parameter. 
+
+```c++
+Unit<prefix::no_prefix, degree> angle(90);
+std::cout << unop<std::sin>(angle).base_value; // prints 1
+```
+
+Note that `unop` operates on the `base_value` on a unit. In the case of `degree` the base unit is `radian` (90 degrees == pi/2 radians) and the `std::sin` function yields the correct result.
