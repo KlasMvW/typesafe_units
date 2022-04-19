@@ -25,8 +25,8 @@ If you need a non-SI unit you define it by declaring a simple struct. This is ho
 You can use the new unit like any other unit already defined in TU:
 
 ```c++
-Unit<prefix::no_prefix, degree_celsius> c(0.0f);
-Unit<prefix::no_prefix, degree_fahrenheit> f(c);
+Unit<prefix::no_prefix, degree_Celsius> c(0.0f);
+Unit<prefix::no_prefix, degree_Fahrenheit> f(c);
 std::cout << f.value << std::endl; // prints 32
 ```
 
@@ -374,6 +374,17 @@ If we would like a specific `Unit` representation of the operation, we have to e
 
 Note that trying to create a Unit that does not have the correct `Coherent_unit` base would result in compilation failure.
 
+#### > < \<= >= != ==
+
+TU implements comparison operators for units with the same underlying `Coherent_unit`.
+Comparison is made to the Units `base_value`s so that
+
+```c++
+Unit<prefix::milli, metre> me1(5.0f);
+Unit<prefix::no_prefix, metre> me2(0.004f);
+if (me2 < me1) std::cout << "true as expected"; // prints "true as expected"   
+```
+
 #### pow
 
 TU implements a `pow` operator for units.
@@ -433,3 +444,89 @@ std::cout << unop<std::sin>(angle).base_value; // prints 1
 ```
 
 Note that `unop` operates on the `base_value` on a unit. In the case of `degree` the base unit is `radian` (90 degrees == pi/2 radians) and the `std::sin` function yields the correct result.
+
+### Predefined coherent units
+
+#### Explicit coherent units
+
+* second 
+* metre 
+* kilogram
+* ampere
+* kelvin
+* mole
+* candela
+
+#### Dervived units with special names
+
+* hertz
+* becquerel
+* ohm
+* siemens
+* farad
+* lumen
+* weber
+* gray
+* sievert
+* watt
+* newton
+* lux
+* radian
+* joule
+* steradian
+* katal
+* pascal
+* coulomb
+* henry
+* tesla
+* volt
+
+#### Derived coherent units
+
+* metre_per_second
+* second_squared
+* metre_cubed
+* metre_squared
+
+### Non coherent units
+
+
+#### Time
+
+* minute 
+* hour 
+* day 
+
+#### Temperature
+
+* degree_Celsius
+
+#### Mass
+
+* gram 
+* tonne 
+* dalton 
+* unified_atomic_mass_unit 
+
+#### Energy
+
+* electronvolt 
+
+#### Volume
+
+* litre 
+
+#### Plane- and phase angel
+
+* degree 
+* arc_minute 
+* arc_second 
+
+
+#### Area
+
+* hectare 
+
+#### Length
+
+* astronomical_unit 
