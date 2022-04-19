@@ -119,14 +119,14 @@ TU comes with its own test suite. It does not rely on any external testing tool.
 The following instruction assumes that you do an out of source build in a directory under the repository root.
 
 ```bat
-cmake .. -G <generator>
-cmake --build . --config <build type>  
+> cmake .. -G <generator>
+> cmake --build . --config <build type>  
 ```
 
 Run the test suite
 
-```
-ctest -V
+```bat
+> ctest -V
 ```
 
 The test suite test TU for both float and double as underlying datatype.
@@ -153,13 +153,13 @@ The intrinsic data type used by TU is defined in the preprocessor macro `TU_TYPE
 
 ### Namespaces
 The main namespace of TU is `tu`.
-Functionality inside `tu` that is located in the namespace `internal` is not public and should only be used implicitly by public classes and methods.
+Functionality inside `tu` that is located in the namespace `internal` is not public and should only be used implicitly through public classes and methods.
  
 ### Classes and structs
 
 #### s, m, kg, A, K, mol, cd
 
-These are the base units with floating point template arguments that determins the power of the base unit.
+These are the base units with floating point template arguments that determines the power of the base unit.
 The base units are used to build `Coherent_unit`s
 
 The definition of each base unit looks as follows where the unit is denoted `X`.
@@ -488,8 +488,7 @@ Note that `unop` operates on the `base_value` on a unit. In the case of `degree`
 * metre_cubed
 * metre_squared
 
-### Non coherent units
-
+### Non-coherent units
 
 #### Time
 
