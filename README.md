@@ -135,7 +135,7 @@ The test suite test TU for both float and double as underlying datatype.
 
 The aim of TU is to be
 
-* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau International des Poids et Mesures (BIPM). See [link to bimp.org](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
+* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau International des Poids et Mesures (BIPM). See [bimp.org](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
 * (type)safe
 * easy to use
 * light weight
@@ -146,30 +146,64 @@ TU is released under the MIT license. https://mit-license.org/
 
 ## Detailed description
 
+### Spelling
+
+TU uses official spelling of units. Therefore TU uses `litre` and `metre` and not *liter* and *meter*. 
+
 ### Types
 
 The intrinsic data type used by TU is defined in the preprocessor macro `TU_TYPE`.
 `TU_TYPE` can be `float` or `double`. All values and floating point template argumets will have the type defined by `TU_TYPE`.
 
 ### Namespaces
+
 The main namespace of TU is `tu`.
 Functionality inside `tu` that is located in the namespace `internal` is not public and should only be used implicitly through public classes and methods.
  
 ### Classes and structs
 
-#### s, m, kg, A, K, mol, cd
+The TU unit system is built on five structs: `Base_unit`, `Coherent_unit`, `Non_coherent_unit`, `Unit` and the enum struct `prefix`.
 
-These are the base units with floating point template arguments that determines the power of the base unit.
-The base units are used to build `Coherent_unit`s
+The illustration below shows how the different structs are used to create other structs. Structs at lower level uses structs on higher level in their construction.
 
-The definition of each base unit looks as follows where the unit is denoted `X`.
+```
+prefix   Base_unit
+|        |
+|        Coherent_unit
+|        |  |
+|        |  Non_coherent_unit
+|        |  |
+|        |  Non_coherent_unit
+|        |  |
+|--------Unit
+```
+
+With words the above would be written:
+
+* `Coherent_unit` is built from `Base_unit`(s)
+* `Non_coherent_unit` is built from a `Coherent_unit` or another `Non_coherent_unit`
+* `Unit` is built from a `prefix` and a `Coherent_unit` or a `Non_coherent_unit`.
+
+The main entity that a typical user of TU will interact with is the `Unit` struct. When extending the unit system, interaction with other structs is required. At some occasions interaction with `Coherent_unit`s is necessary.
+
+#### Base_unit
+
+Base units are the smallest building blocks in the types system. These define powers of the seven basic units `s`, `m`, `kg`, `A`, `K`, `mol` and `cd`. Base units are used to build up `Coherent_unit`s.
+
+The definition of base units are done through inheritance of the `Base_unit` struct and looks as follows where the base unit is denoted `X`.
 
 ```c++
 template<TU_TYPE p>
 struct X : internal::Base_unit<p>{};
 ```
+The definition of `s` (second) to some power `p` then looks as
 
-The base unit `per_second` can be declared through
+```c++
+template<TU_TYPE p>
+struct s : internal::Base_unit<p>{};
+```
+
+and a base unit `per_second` can be declared through
 
 ```c++
 s<(TU_TYPE)-1.0f>;
@@ -177,7 +211,7 @@ s<(TU_TYPE)-1.0f>;
 
 #### Coherent_unit
 
-The `Coherent_unit` struct represents a unit that is a multiple of all base units: s, m, kg, A, K, mol and cd.
+The `Coherent_unit` struct represents a unit that is a multiple of all base units: s, m, kg, A, K, mol and cd with individual powers.
 A specific coherent unit should be defined by inheriting from a `Coherent_unit`
 
 The specific coherent unit `newton` is defined as
@@ -195,6 +229,7 @@ Note that computations using seconds should use the `Coherent_unit` `second` and
 ```c++
 struct second: Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 ```
+
 All base units are defined as `Coherent_unit`s in similar fashion.
 
 #### Non_coherent_unit
