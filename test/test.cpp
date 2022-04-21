@@ -531,6 +531,23 @@ int main() {
          }
   );
 
+  Test<"scalar binary operations">(
+    []<typename T>(T &t) {
+
+      Unit<prefix::no_prefix, second> mult_res = Unit<prefix::no_prefix, second>((TU_TYPE)2.0) * scalar((TU_TYPE)100.0);
+      Unit<prefix::no_prefix, second> div_res = Unit<prefix::no_prefix, second>((TU_TYPE)400.0) / scalar((TU_TYPE)2.0);
+
+      t.assert_true(mult_res.value == (TU_TYPE)200.0,  __LINE__);
+      t.assert_true(div_res.value == (TU_TYPE)200.0,  __LINE__);
+
+      Unit<prefix::no_prefix, radian> add_res = Unit<prefix::no_prefix, radian>((TU_TYPE)2.0) + scalar((TU_TYPE)1.0);
+      Unit<prefix::no_prefix, radian> sub_res = Unit<prefix::no_prefix, radian>((TU_TYPE)2.0) - scalar((TU_TYPE)1.0);
+      
+      t.assert_true(add_res.value == (TU_TYPE)3.0,  __LINE__);
+      t.assert_true(add_res.value == (TU_TYPE)3.0,  __LINE__);
+    }
+  );
+
     static_assert(tu::hour::base_multiplier == 3600.0f);
     return Test_stats::fail;
 }

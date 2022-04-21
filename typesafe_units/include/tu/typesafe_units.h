@@ -242,6 +242,7 @@ template<Second_power T,
 struct Coherent_unit: internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power> {
   Coherent_unit() = default;
   Coherent_unit(const internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>& cb) : internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(cb) {}
+  Coherent_unit(TU_TYPE v) : internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(v){}
 };
 
 namespace internal {
@@ -477,6 +478,7 @@ struct candela: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>
 //
 // Dervived units with special names
 //
+struct scalar : Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct hertz : Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct becquerel: Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
 struct ohm: Coherent_unit<s<(TU_TYPE)-3.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-2.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
