@@ -142,7 +142,7 @@ The aim of TU is to be
 
 ## License
 
-TU is released under the MIT license. https://mit-license.org/
+TU is released under the [MIT](https://mit-license.org/) license.
 
 ## Detailed description
 
