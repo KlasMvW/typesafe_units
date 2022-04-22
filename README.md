@@ -346,7 +346,7 @@ std::cout << tu::convert_to<prefix::milli,Second>(m).value << std::endl; // prin
 ```
 ### Operators
 
-#### + - 
+#### + -
 
 TU supports the binary operators `+` and `-` (addition and subtraction) on units. Conversions are handled under the hood of TU.
 
@@ -464,7 +464,7 @@ is equivalent to
 pow<0.5>(unit).
 ```
 
-Not that since TU uses floating point powers, it is not guaranteed that applying first `pow<2.0>` and the `sqrt` on a unit would yield the exact unit back.
+Note that since TU uses floating point powers, it is not guaranteed that applying first `pow<2.0>` and the `sqrt` on a unit would yield the exact unit back.
 
 #### unop
 
