@@ -12,15 +12,18 @@
 #include <utility>
 #include <cmath>
 #include <compare>
+#include <numbers>
 
 namespace tu {
 
-constexpr TU_TYPE PI = (TU_TYPE)3.1415926535897932384626433832795028841971693993751;
+constexpr TU_TYPE PI = std::numbers::pi_v<TU_TYPE>;
 
 //
 // Prefixes used to define units.
 //
 enum struct prefix {
+  quecto = -30,
+  ronto = -27,
   yocto = -24,
   zepto = -21,
   atto = -18,
@@ -42,8 +45,9 @@ enum struct prefix {
   exa = 18,
   zetta = 21,
   yotta = 24,
+  ronna = 27,
+  quetta = 30,
 };
-
 
 namespace internal {
 //  
