@@ -277,7 +277,7 @@ struct Non_coherent_unit : Parent_unit {
 // Express one unit with prefix in a different unit.
 // Example:
 //   Unit<prefix::no_prefix, Minute> m(1.0f);
-//   std::cout << tu::convert_to<prefix::milli, Second>(m).value << std::endl; // prints 60000.0
+//   std::cout << tu::convert_to<prefix::milli, second>(m).value << std::endl; // prints 60000.0
 // 
 template<prefix to_prefix,
          typename To_unit,
@@ -293,8 +293,8 @@ Unit<to_prefix, To_unit> convert_to(const Unit<from_prefix, From_unit>& from) no
 // Unit is the intended public unit class.
 // Prefix is an enum class intrinsically converted to the exponent of the prefix.
 // Example:
-//  Unit<prefix::nano, Second> s = 3.0; 
-// 
+//  Unit<prefix::nano, second> s = 3.0; 
+//
 template<prefix pf, typename U>
 requires std::derived_from<U, internal::Unit_fundament>
 struct Unit : U::Base {
