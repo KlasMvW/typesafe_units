@@ -13,10 +13,64 @@
 #include <cmath>
 #include <compare>
 #include <numbers>
+#include <ratio>
 
 namespace tu {
 
 constexpr TU_TYPE PI = std::numbers::pi_v<TU_TYPE>;
+
+template<std::intmax_t nom, std::intmax_t den = 1>
+using r = std::ratio<nom, den>;
+
+//namespace internal {
+template<typename R>
+using is_ratio = std::is_same<std::ratio<R::num, R::den>, typename R::type>;
+
+template<typename R>
+inline constexpr bool is_ratio_v = is_ratio<R>::value;
+
+template<typename R1, typename ...R>
+constexpr bool are_ratios() {
+    if constexpr (sizeof...(R) == 0)
+       return is_ratio_v<R1>;
+    else
+       return is_ratio_v<R1> && are_ratios<R...>;
+}
+
+template<typename op, typename A, typename B>
+requires (are_ratios<A, B>())
+constexpr auto ratio_op(A a, B b)  {
+  return op()(a,b);
+}
+//}
+
+template<typename F, typename R>
+requires (!std::is_integral_v<F> && is_ratio_v<R>)
+constexpr F fraction(R) {
+  return static_cast<F>(R::num) / static_cast<F>(R::den);
+}
+
+struct Plus {
+  template<typename A, typename B>
+  constexpr auto operator() (A, B) -> std::ratio_add<A, B>::type{
+    return {};
+  }
+};
+
+struct Minus {
+  template<typename A, typename B>
+  constexpr auto operator() (A, B) -> std::ratio_subtract<A, B>::type{
+    return {};
+  }
+};
+
+struct Multiply {
+  template<typename A, typename B>
+  constexpr auto operator() (A, B) -> std::ratio_multiply<A, B>::type{
+    return {};
+  }
+};
+
 
 //
 // Prefixes used to define units.
@@ -74,15 +128,16 @@ constexpr TU_TYPE pow10() noexcept {
 // Convenience struct to wrap a TU_TYPE representing an exponent in a template argument.
 // This makes it possibel to deduce the exponent argument from a function parameter.
 //
-template<TU_TYPE e>
+template<typename e>
 struct powexp {
     constexpr powexp() noexcept {};
-    static constexpr TU_TYPE exp = e;
+    //static constexpr TU_TYPE exp = e;
 };
 
-template<TU_TYPE U_first, TU_TYPE... U_args>
+template<typename U_first, typename... U_args>
+requires (are_ratios<U_first, U_args...>())
 constexpr bool are_args_zero() noexcept {
-  if constexpr (U_first != (TU_TYPE)0.0) {
+  if constexpr (U_first::num != 0) {
     return false;
   } else
   if constexpr (sizeof...(U_args) > 0) {
@@ -127,7 +182,7 @@ struct Unit_fundament{
 //   Coherent_unit_base<-2, 1, 1, 0, 0, 0, 0> represents the coherent SI unit
 //   Newton (kg * m / s^2).   
 // 
-template<TU_TYPE... p>
+template<typename... p>
 struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
   constexpr Coherent_unit_base() noexcept = default;
@@ -157,52 +212,60 @@ struct Coherent_unit_base : Unit_fundament {
 // derived explicit units access to the template argument in terms of
 // the constexpr int `power`.  
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct Base_unit {
-  static constexpr TU_TYPE power = p;
+  using power = p;
 };
 } // namespace internal
 
 // 
 // Struct representation of base unit s (second) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct s : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit m (metre) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct m : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit kg (kilogram) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct kg : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit A (ampere) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct A : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit K (kelvin) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct K : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit mol (mole) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct mol : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit cd (candela) with power p
 // 
-template<TU_TYPE p>
+template<typename p>
+requires (is_ratio_v<p>)
 struct cd : internal::Base_unit<p>{};
 
 // 
@@ -210,25 +273,25 @@ struct cd : internal::Base_unit<p>{};
 // of coherent units.
 // 
 template<typename Ty>
-concept Second_power = std::is_same<s<Ty::power>, Ty>::value;
+concept Second_power = std::is_same<s<typename Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Metre_power = std::is_same<m<Ty::power>, Ty>::value;
+concept Metre_power = std::is_same<m<typename Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Kilogram_power = std::is_same<kg<Ty::power>, Ty>::value;
+concept Kilogram_power = std::is_same<kg<typename Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Ampere_power = std::is_same<A<Ty::power>, Ty>::value;
+concept Ampere_power = std::is_same<A<typename Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Kelvin_power = std::is_same<K<Ty::power>, Ty>::value;
+concept Kelvin_power = std::is_same<K<typename Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Mole_power = std::is_same<mol<Ty::power>, Ty>::value;
+concept Mole_power = std::is_same<mol<typename Ty::power>, Ty>::value;
 
 template<typename Ty>
-concept Candela_power = std::is_same<cd<Ty::power>, Ty>::value;
+concept Candela_power = std::is_same<cd<typename Ty::power>, Ty>::value;
 
 // 
 // Struct that represents a coherent unit.
@@ -243,10 +306,10 @@ template<Second_power T,
          Kelvin_power Theta,
          Mole_power N,
          Candela_power J>
-struct Coherent_unit: internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power> {
+struct Coherent_unit: internal::Coherent_unit_base<typename T::power, typename L::power, typename M::power, typename I::power, typename Theta::power, typename N::power, typename J::power> {
   Coherent_unit() = default;
-  Coherent_unit(const internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>& cb) : internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(cb) {}
-  Coherent_unit(TU_TYPE v) : internal::Coherent_unit_base<T::power, L::power, M::power, I::power, Theta::power, N::power, J::power>(v){}
+  Coherent_unit(const internal::Coherent_unit_base<typename T::power, typename L::power, typename M::power, typename I::power, typename Theta::power, typename N::power, typename J::power>& cb) : internal::Coherent_unit_base<typename T::power, typename L::power, typename M::power, typename I::power, typename Theta::power, typename N::power, typename J::power>(cb) {}
+  Coherent_unit(TU_TYPE v) : internal::Coherent_unit_base<typename T::power, typename L::power, typename M::power, typename I::power, typename Theta::power, typename N::power, typename J::power>(v){}
 };
 
 namespace internal {
@@ -255,7 +318,7 @@ namespace internal {
 // Quantities of base are assumed to be in the intended order.
 // Dimenisons are deduced from base.
 //
-template<TU_TYPE ts, TU_TYPE tm, TU_TYPE tkg, TU_TYPE tA, TU_TYPE tK, TU_TYPE tmol, TU_TYPE tcd>
+template<typename ts, typename tm, typename tkg, typename tA, typename tK, typename tmol, typename tcd>
 constexpr auto create_coherent_unit(const Coherent_unit_base<ts, tm, tkg, tA, tK, tmol, tcd>& cb) noexcept {
   return Coherent_unit<s<ts>, m<tm>, kg<tkg>, A<tA>, K<tK>, mol<tmol>, cd<tcd>>(cb);
 }
@@ -310,84 +373,86 @@ struct Unit : U::Base {
 // 
 // Define binary operations +, -, *, and / for units.
 // 
-template<TU_TYPE... Args,
-         template<TU_TYPE...> typename T>
+template<typename... Args,
+         template<typename...> typename T>
+requires (are_ratios<Args...>())
 auto operator + (T<Args...> l, T<Args...> r) noexcept {
   return internal::create_coherent_unit(T<Args...>(l.base_value + r.base_value)); 
 }
 
-template<TU_TYPE... Args,
-         template<TU_TYPE...> typename T>
+template<typename... Args,
+         template<typename...> typename T>
+requires (are_ratios<Args...>())
 auto operator - (T<Args...> l, T<Args...> r) noexcept {
   return internal::create_coherent_unit(T<Args...>(l.base_value - r.base_value)); 
 }
 
 namespace internal {
-template<TU_TYPE lf,
-         TU_TYPE... l_args,
-         template<TU_TYPE, TU_TYPE...> typename L,
-         TU_TYPE rf,
-         TU_TYPE... r_args,
-         template<TU_TYPE, TU_TYPE...> typename R,
-         TU_TYPE... lr_args,
-         template<TU_TYPE...> typename L_op_R,
+template<typename lf,
+         typename... l_args,
+         template<typename, typename...> typename L,
+         typename rf,
+         typename... r_args,
+         template<typename, typename...> typename R,
+         typename... lr_args,
+         template<typename...> typename L_op_R,
          typename Op>
-requires (sizeof...(l_args) == sizeof...(r_args))
+requires (sizeof...(l_args) == sizeof...(r_args) && are_ratios<lf, l_args...> && are_ratios<rf, r_args...>)
 constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
   if constexpr (sizeof...(l_args) == 0 && sizeof...(r_args) == 0) {
-     return create_coherent_unit(L_op_R<lr_args..., op(lf, rf)>());
+     return create_coherent_unit(L_op_R<lr_args..., decltype(op(lf(), rf()))>());
   } else {
-    return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., op(lf, rf)>(), op);
+    return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., decltype(op(lf(), rf()))>(), op);
   }
 }
 } // namespace internal
 
-template<TU_TYPE L_first,
-         TU_TYPE... L_args,
-         TU_TYPE R_first,
-         TU_TYPE... R_args,
-         template<TU_TYPE...> typename L,
-         template<TU_TYPE...> typename R>
-requires (sizeof...(L_args) == sizeof...(R_args))
+template<typename L_first,
+         typename... L_args,
+         typename R_first,
+         typename... R_args,
+         template<typename...> typename L,
+         template<typename...> typename R>
+requires (sizeof...(L_args) == sizeof...(R_args) && are_ratios<L_first, L_args...>() && are_ratios<R_first, R_args...>())
 auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
                                                                                                                  R<R_first, R_args...>(),
                                                                                                                  L<>(),
-                                                                                                                 std::plus<TU_TYPE>())) {
+                                                                                                                 Plus())) {
   return {l.base_value * r.base_value}; 
 }
 
-template<TU_TYPE L_first,
-         TU_TYPE... L_args,
-         TU_TYPE R_first,
-         TU_TYPE... R_args,
-         template<TU_TYPE...> typename L,
-         template<TU_TYPE...> typename R>
-requires (sizeof...(L_args) == sizeof...(R_args))
+template<typename L_first,
+         typename... L_args,
+         typename R_first,
+         typename... R_args,
+         template<typename...> typename L,
+         template<typename...> typename R>
+requires (sizeof...(L_args) == sizeof...(R_args) && are_ratios<L_first, L_args...>() && are_ratios<R_first, R_args...>())
 auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
                                                                                                                  R<R_first, R_args...>(),
                                                                                                                  L<>(),
-                                                                                                                 std::minus<TU_TYPE>())) {
+                                                                                                                 Minus())) {
   return {l.base_value / r.base_value}; 
 }
 
 namespace internal {
 //
-// Apply a binary operation Op recusively to every template argument of U and a number n. 
-// Given U<a, b, c> and the number n, the returned type of the operation is U<Op(a,n), Op(b,n), Op(c,n)> 
+// Apply a binary operation Op recusively to every template argument of U and a ratio r. 
+// Given U<a, b, c> and the ratio r, the returned type of the operation is U<Op(a,r), Op(b,r), Op(c,r)> 
 //
-template<TU_TYPE U_first,
-         TU_TYPE... U_args,
-         template<TU_TYPE, TU_TYPE...> typename U,
-         TU_TYPE... U_op_args,
-         template<TU_TYPE...> typename U_op,
-         TU_TYPE n,
-         template<TU_TYPE> typename Num,
+template<typename U_first,
+         typename... U_args,
+         template<typename, typename...> typename U,
+         typename... U_op_args,
+         template<typename...> typename U_op,
+         typename r,
+         template<typename> typename Rat,
          typename Op>
-constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Num<n> N,  U_op<U_op_args...>, Op op) noexcept {
+constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Rat<r> R,  U_op<U_op_args...>, Op op) noexcept {
   if constexpr (sizeof...(U_args) == 0) {
-    return internal::create_coherent_unit(U_op<U_op_args..., op(U_first, n)>());
+    return internal::create_coherent_unit(U_op<U_op_args..., decltype(op(U_first(), r()))>());
   } else {
-    return binary_op_args_num(U<U_args...>(), N, U_op<U_op_args..., op(U_first, n)>(), op);
+    return binary_op_args_num(U<U_args...>(), R, U_op<U_op_args..., decltype(op(U_first(), r()))>(), op);
   }
 }
 
@@ -396,16 +461,16 @@ constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Num<n>
 // Use the `binary_op_args_num` template functions to perform pow<TU_TYPE>(U<TU_TYPE...>).
 // Binary operation is std::multiplies<TU_TYPES>. 
 //
-template<TU_TYPE exp,
-         TU_TYPE U_first,
-         TU_TYPE... U_args,
-         template<TU_TYPE...> typename U>
+template<typename exp,
+         typename U_first,
+         typename... U_args,
+         template<typename...> typename U>
 requires std::derived_from<U<U_args...>, Unit_fundament>
 auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_first, U_args...>(),
                                                                  powexp<exp>(),
                                                                  U<>(),
-                                                                 std::multiplies<TU_TYPE>())) {
-  return {std::pow(u.base_value, exp)};
+                                                                 Multiply())) {
+  return {std::pow(u.base_value, fraction<TU_TYPE>(exp()))};
 }
 } //namespace internal
 
@@ -413,7 +478,7 @@ auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_fi
 //
 // Template function for pow<TU_TYPE exp>(Unit<prefix, U>) returning the underlying "coherent" unit U::Base<a * exp, b * exp...>
 //
-template<TU_TYPE exp,
+template<typename exp,
          prefix pf,
          typename U>
 requires std::derived_from<U, internal::Unit_fundament>
@@ -428,17 +493,17 @@ template<prefix pf,
          typename U>
 requires std::derived_from<U, internal::Unit_fundament>
 auto sqrt(Unit<pf, U> u) noexcept {
-    return pow<(TU_TYPE)0.5>(u);
+    return pow<std::ratio<1,2>>(u);
 }
 
 //
 // sqrt for struct Coherent_unit<> or similar.
 //
-template<TU_TYPE... U_args,
-         template<TU_TYPE...> typename U>
+template<typename... U_args,
+         template<typename...> typename U>
 requires std::derived_from<U<U_args...>, internal::Unit_fundament>
 auto sqrt(U<U_args...> u) noexcept {
-  return pow<(TU_TYPE)0.5>(u);
+  return pow<std::ratio<1,2>>(u);
 }
 
 //
@@ -471,47 +536,47 @@ auto unop(const U& u){
 // 
 // Explicit definitions of coherent units.
 // 
-struct second : Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct metre : Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct kilogram: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct ampere: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct kelvin: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)1.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct mole: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)1.0>, cd<(TU_TYPE)0.0>>{};
-struct candela: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>{};
+struct second : Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct metre : Coherent_unit<s<std::ratio<0>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct kilogram: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct ampere: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct kelvin: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<1>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct mole: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>{};
+struct candela: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>{};
 
 //
-// Dervived units with special names
+// Derived units with special names
 //
-struct scalar : Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct hertz : Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct becquerel: Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct ohm: Coherent_unit<s<(TU_TYPE)-3.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-2.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct siemens: Coherent_unit<s<(TU_TYPE)3.0>, m<(TU_TYPE)-2.0>, kg<(TU_TYPE)-1.0>, A<(TU_TYPE)2.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct farad: Coherent_unit<s<(TU_TYPE)4.0>, m<(TU_TYPE)-2.0>, kg<(TU_TYPE)-1.0>, A<(TU_TYPE)2.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct lumen: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>{};
-struct weber: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct gray: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct sievert: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct watt: Coherent_unit<s<(TU_TYPE)-3.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct newton: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct lux: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)-2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>{};
-struct radian: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct joule: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct steradian: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct katal: Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)1.0>, cd<(TU_TYPE)0.0>>{};
-struct pascal: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)-1.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct coulomb: Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct henry: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-2.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct tesla: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct volt : Coherent_unit<s<(TU_TYPE)-3.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+struct scalar : Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct hertz : Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct becquerel: Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct ohm: Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct siemens: Coherent_unit<s<std::ratio<3>>, m<std::ratio<-2>>, kg<std::ratio<-1>>, A<std::ratio<2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct farad: Coherent_unit<s<std::ratio<4>>, m<std::ratio<-2>>, kg<std::ratio<-1>>, A<std::ratio<2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct lumen: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>{};
+struct weber: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct gray: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct sievert: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct watt: Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct newton: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<1>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct lux: Coherent_unit<s<std::ratio<0>>, m<std::ratio<-2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>{};
+struct radian: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct joule: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct steradian: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct katal: Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>{};
+struct pascal: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<-1>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct coulomb: Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct henry: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct tesla: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct volt : Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
 
 //
 // Derived coherent units
 //
-struct metre_per_second : Coherent_unit<s<(TU_TYPE)-1.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct second_squared : Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct metre_cubed: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)3.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
-struct metre_squared: Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+struct metre_per_second : Coherent_unit<s<std::ratio<-1>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct second_squared : Coherent_unit<s<std::ratio<2>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct metre_cubed: Coherent_unit<s<std::ratio<0>>, m<std::ratio<3>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+struct metre_squared: Coherent_unit<s<std::ratio<0>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
 
 //
 // Define non coherent units
