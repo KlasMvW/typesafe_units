@@ -19,58 +19,49 @@ namespace tu {
 
 constexpr TU_TYPE PI = std::numbers::pi_v<TU_TYPE>;
 
-template<std::intmax_t nom, std::intmax_t den = 1>
-using r = std::ratio<nom, den>;
-
 //namespace internal {
-template<typename R>
-using is_ratio = std::is_same<std::ratio<R::num, R::den>, typename R::type>;
 
-template<typename R>
-inline constexpr bool is_ratio_v = is_ratio<R>::value;
+template <typename T>
+struct is_ratio : std::false_type {};
 
-template<typename R1, typename ...R>
-constexpr bool are_ratios() {
-    if constexpr (sizeof...(R) == 0)
-       return is_ratio_v<R1>;
-    else
-       return is_ratio_v<R1> && are_ratios<R...>;
-}
+template <std::intmax_t Num, std::intmax_t Den>
+struct is_ratio<std::ratio<Num, Den>> : std::true_type {};
 
-template<typename op, typename A, typename B>
-requires (are_ratios<A, B>())
-constexpr auto ratio_op(A a, B b)  {
-  return op()(a,b);
-}
+template<typename T>
+inline constexpr bool is_ratio_v = is_ratio<T>::value; 
+
+template<typename T>
+concept Ratio = is_ratio_v<T>;
+
 //}
 
-template<typename F, typename R>
-requires (!std::is_integral_v<F> && is_ratio_v<R>)
-constexpr F fraction(R) {
-  return static_cast<F>(R::num) / static_cast<F>(R::den);
+template<Ratio R>
+constexpr TU_TYPE fraction(R) {
+  return static_cast<TU_TYPE>(R::num) / static_cast<TU_TYPE>(R::den);
 }
 
 struct Plus {
-  template<typename A, typename B>
+  template<Ratio A, Ratio B>
   constexpr auto operator() (A, B) -> std::ratio_add<A, B>::type{
     return {};
   }
 };
 
 struct Minus {
-  template<typename A, typename B>
+  template<Ratio A, Ratio B>
   constexpr auto operator() (A, B) -> std::ratio_subtract<A, B>::type{
     return {};
   }
 };
 
 struct Multiply {
-  template<typename A, typename B>
+  template<Ratio A, Ratio B>
   constexpr auto operator() (A, B) -> std::ratio_multiply<A, B>::type{
     return {};
   }
 };
 
+//} // namespace internal 
 
 //
 // Prefixes used to define units.
@@ -124,18 +115,7 @@ constexpr TU_TYPE pow10() noexcept {
   }
 }
 
-//
-// Convenience struct to wrap a TU_TYPE representing an exponent in a template argument.
-// This makes it possibel to deduce the exponent argument from a function parameter.
-//
-template<typename e>
-struct powexp {
-    constexpr powexp() noexcept {};
-    //static constexpr TU_TYPE exp = e;
-};
-
-template<typename U_first, typename... U_args>
-requires (are_ratios<U_first, U_args...>())
+template<Ratio U_first, Ratio... U_args>
 constexpr bool are_args_zero() noexcept {
   if constexpr (U_first::num != 0) {
     return false;
@@ -154,17 +134,17 @@ constexpr bool are_args_zero() noexcept {
 // template arguments to derive from it. Empty base optimization ensures that
 // this construction does not come with any memory overhead.   
 // 
-struct Unit_fundament{
+struct Unit_fundament {
   auto operator <=> (const Unit_fundament& other) const noexcept = default;
 };
 
 // 
 // Base struct for coherent units.
-// The variadic TU_TYPE arguments simplifies binary operations of units.
+// The variadic std::ratio arguments simplifies binary operations of units.
 // Direct use of this struct should be avoided in application code since it is
-// not explicit what quantity each template argument represent.
+// not explicit what quantity each template argument represents.
 // 
-// Template arguments represents power (p) of SI quantities in the following
+// Template arguments represents rational power (p) of SI quantities in the following
 // order:
 // 
 // <Time (s),
@@ -176,13 +156,28 @@ struct Unit_fundament{
 //  Luminous intensity (cd))>
 // 
 // Example:
-//   Coherent_unit_base<-1, 1, 0, 0, 0, 0, 0> represents the coherent SI unit
-//   "metre per second".
+//
+//   Coherent_unit_base<std::ratio<-1>,
+//                      std::ratio<1>,
+//                      std::ratio<0>,
+//                      std::ratio<0>,
+//                      std::ratio<0>,
+//                      std::ratio<0>,
+//                      std::ratio<0>>
+//
+// represents the coherent SI unit "metre per second".
 //   
-//   Coherent_unit_base<-2, 1, 1, 0, 0, 0, 0> represents the coherent SI unit
-//   Newton (kg * m / s^2).   
+//   Coherent_unit_base<std::ratio<-2>,
+//                      std::Ratio<1>,
+//                      std::Ratio<1>,
+//                      std::Ratio<0>,
+//                      std::Ratio<0>,
+//                      std::Ratio<0>,
+//                      std::Ratio<0>>
+//
+// represents the coherent SI unit Newton (kg * m / s^2).   
 // 
-template<typename... p>
+template<Ratio... p>
 struct Coherent_unit_base : Unit_fundament {
   using Base = Coherent_unit_base<p...>;
   constexpr Coherent_unit_base() noexcept = default;
@@ -212,60 +207,52 @@ struct Coherent_unit_base : Unit_fundament {
 // derived explicit units access to the template argument in terms of
 // the constexpr int `power`.  
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct Base_unit {
   using power = p;
 };
 } // namespace internal
 
 // 
-// Struct representation of base unit s (second) with power p
+// Struct representation of base unit s (second) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct s : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit m (metre) with power p
+// Struct representation of base unit m (metre) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct m : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit kg (kilogram) with power p
+// Struct representation of base unit kg (kilogram) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct kg : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit A (ampere) with power p
+// Struct representation of base unit A (ampere) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct A : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit K (kelvin) with power p
+// Struct representation of base unit K (kelvin) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct K : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit mol (mole) with power p
+// Struct representation of base unit mol (mole) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct mol : internal::Base_unit<p>{};
 
 // 
-// Struct representation of base unit cd (candela) with power p
+// Struct representation of base unit cd (candela) with rational power p
 // 
-template<typename p>
-requires (is_ratio_v<p>)
+template<Ratio p>
 struct cd : internal::Base_unit<p>{};
 
 // 
@@ -318,7 +305,7 @@ namespace internal {
 // Quantities of base are assumed to be in the intended order.
 // Dimenisons are deduced from base.
 //
-template<typename ts, typename tm, typename tkg, typename tA, typename tK, typename tmol, typename tcd>
+template<Ratio ts, Ratio tm, Ratio tkg, Ratio tA, Ratio tK, Ratio tmol, Ratio tcd>
 constexpr auto create_coherent_unit(const Coherent_unit_base<ts, tm, tkg, tA, tK, tmol, tcd>& cb) noexcept {
   return Coherent_unit<s<ts>, m<tm>, kg<tkg>, A<tA>, K<tK>, mol<tmol>, cd<tcd>>(cb);
 }
@@ -329,7 +316,7 @@ constexpr auto create_coherent_unit(const Coherent_unit_base<ts, tm, tkg, tA, tK
 // The inheritance from Parent_unit is only introduced to be able to constrain Parent_unit.
 // 
 template<TU_TYPE multiplier, TU_TYPE adder, typename Parent_unit>
-requires (std::derived_from<Parent_unit, internal::Unit_fundament> && multiplier != (TU_TYPE)0.0)
+requires (std::derived_from<Parent_unit, internal::Unit_fundament> && (multiplier != (TU_TYPE)1.0 || adder != (TU_TYPE)0.0))
 struct Non_coherent_unit : Parent_unit {
   static constexpr TU_TYPE base_multiplier = Parent_unit::base_multiplier * multiplier;
   static constexpr TU_TYPE base_adder = Parent_unit::base_adder + adder * multiplier;
@@ -373,31 +360,29 @@ struct Unit : U::Base {
 // 
 // Define binary operations +, -, *, and / for units.
 // 
-template<typename... Args,
-         template<typename...> typename T>
-requires (are_ratios<Args...>())
+template<Ratio... Args,
+         template<Ratio...> typename T>
 auto operator + (T<Args...> l, T<Args...> r) noexcept {
   return internal::create_coherent_unit(T<Args...>(l.base_value + r.base_value)); 
 }
 
-template<typename... Args,
-         template<typename...> typename T>
-requires (are_ratios<Args...>())
+template<Ratio... Args,
+         template<Ratio...> typename T>
 auto operator - (T<Args...> l, T<Args...> r) noexcept {
   return internal::create_coherent_unit(T<Args...>(l.base_value - r.base_value)); 
 }
 
 namespace internal {
-template<typename lf,
-         typename... l_args,
+template<Ratio lf,
+         Ratio... l_args,
          template<typename, typename...> typename L,
-         typename rf,
-         typename... r_args,
+         Ratio rf,
+         Ratio... r_args,
          template<typename, typename...> typename R,
-         typename... lr_args,
+         Ratio... lr_args,
          template<typename...> typename L_op_R,
          typename Op>
-requires (sizeof...(l_args) == sizeof...(r_args) && are_ratios<lf, l_args...> && are_ratios<rf, r_args...>)
+requires (sizeof...(l_args) == sizeof...(r_args))
 constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
   if constexpr (sizeof...(l_args) == 0 && sizeof...(r_args) == 0) {
      return create_coherent_unit(L_op_R<lr_args..., decltype(op(lf(), rf()))>());
@@ -407,13 +392,13 @@ constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args
 }
 } // namespace internal
 
-template<typename L_first,
-         typename... L_args,
-         typename R_first,
-         typename... R_args,
-         template<typename...> typename L,
-         template<typename...> typename R>
-requires (sizeof...(L_args) == sizeof...(R_args) && are_ratios<L_first, L_args...>() && are_ratios<R_first, R_args...>())
+template<Ratio L_first,
+         Ratio... L_args,
+         Ratio R_first,
+         Ratio... R_args,
+         template<Ratio...> typename L,
+         template<Ratio...> typename R>
+requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
                                                                                                                  R<R_first, R_args...>(),
                                                                                                                  L<>(),
@@ -421,13 +406,13 @@ auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> d
   return {l.base_value * r.base_value}; 
 }
 
-template<typename L_first,
-         typename... L_args,
-         typename R_first,
-         typename... R_args,
-         template<typename...> typename L,
-         template<typename...> typename R>
-requires (sizeof...(L_args) == sizeof...(R_args) && are_ratios<L_first, L_args...>() && are_ratios<R_first, R_args...>())
+template<Ratio L_first,
+         Ratio... L_args,
+         Ratio R_first,
+         Ratio... R_args,
+         template<Ratio...> typename L,
+         template<Ratio...> typename R>
+requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
                                                                                                                  R<R_first, R_args...>(),
                                                                                                                  L<>(),
@@ -445,40 +430,39 @@ template<typename U_first,
          template<typename, typename...> typename U,
          typename... U_op_args,
          template<typename...> typename U_op,
-         typename r,
-         template<typename> typename Rat,
+         Ratio R,
          typename Op>
-constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] Rat<r> R,  U_op<U_op_args...>, Op op) noexcept {
+constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] R r,  U_op<U_op_args...>, Op op) noexcept {
   if constexpr (sizeof...(U_args) == 0) {
-    return internal::create_coherent_unit(U_op<U_op_args..., decltype(op(U_first(), r()))>());
+    return internal::create_coherent_unit(U_op<U_op_args..., decltype(op(U_first(), r))>());
   } else {
-    return binary_op_args_num(U<U_args...>(), R, U_op<U_op_args..., decltype(op(U_first(), r()))>(), op);
+    return binary_op_args_num(U<U_args...>(), r, U_op<U_op_args..., decltype(op(U_first(), r))>(), op);
   }
 }
 
 
 //
-// Use the `binary_op_args_num` template functions to perform pow<TU_TYPE>(U<TU_TYPE...>).
-// Binary operation is std::multiplies<TU_TYPES>. 
+// Use the `binary_op_args_num` template functions to perform pow<std::ratio<>>(U<std::Ratio<>...>).
+// Binary operation is Multiply. 
 //
-template<typename exp,
+template<Ratio exp,
          typename U_first,
          typename... U_args,
          template<typename...> typename U>
 requires std::derived_from<U<U_args...>, Unit_fundament>
 auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_first, U_args...>(),
-                                                                 powexp<exp>(),
-                                                                 U<>(),
-                                                                 Multiply())) {
-  return {std::pow(u.base_value, fraction<TU_TYPE>(exp()))};
+                                                                          exp(),
+                                                                          U<>(),
+                                                                          Multiply())) {
+  return {std::pow(u.base_value, fraction(exp()))};
 }
 } //namespace internal
 
 
 //
-// Template function for pow<TU_TYPE exp>(Unit<prefix, U>) returning the underlying "coherent" unit U::Base<a * exp, b * exp...>
+// Template function for pow<std::ratio exp>(Unit<prefix, U>) returning the underlying "coherent" unit U::Base<a * exp, b * exp...>
 //
-template<typename exp,
+template<Ratio exp,
          prefix pf,
          typename U>
 requires std::derived_from<U, internal::Unit_fundament>
@@ -511,9 +495,9 @@ auto sqrt(U<U_args...> u) noexcept {
 // unop is a template function that applies any unary function that takes a TU_TYPE
 // and returns a TU_TYPE to the underlying value of the unit if it is a scalar unit e.g
 // radian or steradian. The function returns a scalar Coherent_unit initialized with
-// the value of the performed operation. This makes it possible to operate with any unary
-// function (subjected to the restrictions above) from the standard library on a Unit or
-// Coherent_unit. unop can take both unary functions and lambda expressions as
+// the resulting value of the performed operation. This makes it possible to operate with
+// any unary function (subjected to the restrictions above) from the standard library on a
+// Unit or Coherent_unit. unop can take both unary functions and lambda expressions as
 // template parameter. 
 //
 // Example:
