@@ -19,7 +19,7 @@ namespace tu {
 
 constexpr TU_TYPE PI = std::numbers::pi_v<TU_TYPE>;
 
-//namespace internal {
+namespace internal {
 
 template <typename T>
 struct is_ratio : std::false_type {};
@@ -61,7 +61,7 @@ struct Multiply {
   }
 };
 
-//} // namespace internal 
+} // namespace internal 
 
 //
 // Prefixes used to define units.
@@ -216,43 +216,43 @@ struct Base_unit {
 // 
 // Struct representation of base unit s (second) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct s : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit m (metre) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct m : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit kg (kilogram) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct kg : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit A (ampere) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct A : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit K (kelvin) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct K : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit mol (mole) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct mol : internal::Base_unit<p>{};
 
 // 
 // Struct representation of base unit cd (candela) with rational power p
 // 
-template<Ratio p>
+template<internal::Ratio p>
 struct cd : internal::Base_unit<p>{};
 
 // 
@@ -387,29 +387,29 @@ constexpr auto binary_op_args(internal::Coherent_unit_base<lf, l_args...>, inter
 }
 } // namespace internal
 
-template<Ratio L_first,
-         Ratio... L_args,
-         Ratio R_first,
-         Ratio... R_args>
+template<internal::Ratio L_first,
+         internal::Ratio... L_args,
+         internal::Ratio R_first,
+         internal::Ratio... R_args>
 requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator * (internal::Coherent_unit_base<L_first, L_args...> l,
                  internal::Coherent_unit_base<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(internal::Coherent_unit_base<L_first, L_args...>(),
                                                                                                                    internal::Coherent_unit_base<R_first, R_args...>(),
                                                                                                                    internal::Coherent_unit_base<>(),
-                                                                                                                   Plus())) {
+                                                                                                                   internal::Plus())) {
   return {l.base_value * r.base_value}; 
 }
 
-template<Ratio L_first,
-         Ratio... L_args,
-         Ratio R_first,
-         Ratio... R_args>
+template<internal::Ratio L_first,
+         internal::Ratio... L_args,
+         internal::Ratio R_first,
+         internal::Ratio... R_args>
 requires (sizeof...(L_args) == sizeof...(R_args))
 auto operator / (internal::Coherent_unit_base<L_first, L_args...> l,
                  internal::Coherent_unit_base<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(internal::Coherent_unit_base<L_first, L_args...>(),
                                                                                                                    internal::Coherent_unit_base<R_first, R_args...>(),
                                                                                                                    internal::Coherent_unit_base<>(),
-                                                                                                                   Minus())) {
+                                                                                                                   internal::Minus())) {
   return {l.base_value / r.base_value}; 
 }
 
@@ -436,14 +436,14 @@ constexpr auto binary_op_args_num(internal::Coherent_unit_base<U_first, U_args..
 // Use the `binary_op_args_num` template functions to perform pow<std::ratio<>>(U<std::Ratio<>...>).
 // Binary operation is Multiply. 
 //
-template<Ratio exp,
-         Ratio U_first,
-         Ratio... U_args>
+template<internal::Ratio exp,
+         internal::Ratio U_first,
+         internal::Ratio... U_args>
 auto pow(internal::Coherent_unit_base<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(internal::Coherent_unit_base<U_first, U_args...>(),
                                                                                                      exp(),
                                                                                                      internal::Coherent_unit_base<>(),
-                                                                                                     Multiply())) {
-  return {std::pow(u.base_value, fraction(exp()))};
+                                                                                                     internal::Multiply())) {
+  return {std::pow(u.base_value, internal::fraction(exp()))};
 }
 
 //
