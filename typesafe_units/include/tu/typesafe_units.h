@@ -360,34 +360,29 @@ struct Unit : U::Base {
 // 
 // Define binary operations +, -, *, and / for units.
 // 
-template<Ratio... Args,
-         template<Ratio...> typename T>
-auto operator + (T<Args...> l, T<Args...> r) noexcept {
-  return internal::create_coherent_unit(T<Args...>(l.base_value + r.base_value)); 
+template<typename ... Args>
+auto operator + (internal::Coherent_unit_base<Args...> l, internal::Coherent_unit_base<Args...> r) noexcept {
+  return internal::create_coherent_unit(internal::Coherent_unit_base<Args...>(l.base_value + r.base_value)); 
 }
 
-template<Ratio... Args,
-         template<Ratio...> typename T>
-auto operator - (T<Args...> l, T<Args...> r) noexcept {
-  return internal::create_coherent_unit(T<Args...>(l.base_value - r.base_value)); 
+template<typename... Args>
+auto operator - (internal::Coherent_unit_base<Args...> l, internal::Coherent_unit_base<Args...> r) noexcept {
+  return internal::create_coherent_unit(internal::Coherent_unit_base<Args...>(l.base_value - r.base_value)); 
 }
 
 namespace internal {
 template<Ratio lf,
          Ratio... l_args,
-         template<typename, typename...> typename L,
          Ratio rf,
          Ratio... r_args,
-         template<typename, typename...> typename R,
          Ratio... lr_args,
-         template<typename...> typename L_op_R,
          typename Op>
 requires (sizeof...(l_args) == sizeof...(r_args))
-constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args...>, Op op) noexcept {
+constexpr auto binary_op_args(internal::Coherent_unit_base<lf, l_args...>, internal::Coherent_unit_base<rf, r_args...>, internal::Coherent_unit_base<lr_args...>, Op op) noexcept {
   if constexpr (sizeof...(l_args) == 0 && sizeof...(r_args) == 0) {
-     return create_coherent_unit(L_op_R<lr_args..., decltype(op(lf(), rf()))>());
+     return create_coherent_unit(internal::Coherent_unit_base<lr_args..., decltype(op(lf(), rf()))>());
   } else {
-    return binary_op_args(L<l_args...>(), R< r_args...>(),  L_op_R<lr_args..., decltype(op(lf(), rf()))>(), op);
+    return binary_op_args(internal::Coherent_unit_base<l_args...>(), internal::Coherent_unit_base<r_args...>(),  internal::Coherent_unit_base<lr_args..., decltype(op(lf(), rf()))>(), op);
   }
 }
 } // namespace internal
@@ -395,28 +390,26 @@ constexpr auto binary_op_args(L<lf, l_args...>, R<rf, r_args...>, L_op_R<lr_args
 template<Ratio L_first,
          Ratio... L_args,
          Ratio R_first,
-         Ratio... R_args,
-         template<Ratio...> typename L,
-         template<Ratio...> typename R>
+         Ratio... R_args>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator * (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
-                                                                                                                 R<R_first, R_args...>(),
-                                                                                                                 L<>(),
-                                                                                                                 Plus())) {
+auto operator * (internal::Coherent_unit_base<L_first, L_args...> l,
+                 internal::Coherent_unit_base<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(internal::Coherent_unit_base<L_first, L_args...>(),
+                                                                                                                   internal::Coherent_unit_base<R_first, R_args...>(),
+                                                                                                                   internal::Coherent_unit_base<>(),
+                                                                                                                   Plus())) {
   return {l.base_value * r.base_value}; 
 }
 
 template<Ratio L_first,
          Ratio... L_args,
          Ratio R_first,
-         Ratio... R_args,
-         template<Ratio...> typename L,
-         template<Ratio...> typename R>
+         Ratio... R_args>
 requires (sizeof...(L_args) == sizeof...(R_args))
-auto operator / (L<L_first, L_args...> l, R<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(L<L_first, L_args...>(),
-                                                                                                                 R<R_first, R_args...>(),
-                                                                                                                 L<>(),
-                                                                                                                 Minus())) {
+auto operator / (internal::Coherent_unit_base<L_first, L_args...> l,
+                 internal::Coherent_unit_base<R_first, R_args...> r) noexcept -> decltype(internal::binary_op_args(internal::Coherent_unit_base<L_first, L_args...>(),
+                                                                                                                   internal::Coherent_unit_base<R_first, R_args...>(),
+                                                                                                                   internal::Coherent_unit_base<>(),
+                                                                                                                   Minus())) {
   return {l.base_value / r.base_value}; 
 }
 
@@ -425,68 +418,39 @@ namespace internal {
 // Apply a binary operation Op recusively to every template argument of U and a ratio r. 
 // Given U<a, b, c> and the ratio r, the returned type of the operation is U<Op(a,r), Op(b,r), Op(c,r)> 
 //
-template<typename U_first,
-         typename... U_args,
-         template<typename, typename...> typename U,
-         typename... U_op_args,
-         template<typename...> typename U_op,
+template<Ratio U_first,
+         Ratio... U_args,
+         Ratio... U_op_args,
          Ratio R,
          typename Op>
-constexpr auto binary_op_args_num(U<U_first, U_args...>, [[maybe_unused]] R r,  U_op<U_op_args...>, Op op) noexcept {
+constexpr auto binary_op_args_num(internal::Coherent_unit_base<U_first, U_args...>, [[maybe_unused]] R r,  internal::Coherent_unit_base<U_op_args...>, Op op) noexcept {
   if constexpr (sizeof...(U_args) == 0) {
-    return internal::create_coherent_unit(U_op<U_op_args..., decltype(op(U_first(), r))>());
+    return internal::create_coherent_unit(internal::Coherent_unit_base<U_op_args..., decltype(op(U_first(), r))>());
   } else {
-    return binary_op_args_num(U<U_args...>(), r, U_op<U_op_args..., decltype(op(U_first(), r))>(), op);
+    return binary_op_args_num(internal::Coherent_unit_base<U_args...>(), r, internal::Coherent_unit_base<U_op_args..., decltype(op(U_first(), r))>(), op);
   }
 }
-
+} //namespace internal
 
 //
 // Use the `binary_op_args_num` template functions to perform pow<std::ratio<>>(U<std::Ratio<>...>).
 // Binary operation is Multiply. 
 //
 template<Ratio exp,
-         typename U_first,
-         typename... U_args,
-         template<typename...> typename U>
-requires std::derived_from<U<U_args...>, Unit_fundament>
-auto pow(U<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(U<U_first, U_args...>(),
-                                                                          exp(),
-                                                                          U<>(),
-                                                                          Multiply())) {
+         Ratio U_first,
+         Ratio... U_args>
+auto pow(internal::Coherent_unit_base<U_first, U_args...> u) noexcept -> decltype(binary_op_args_num(internal::Coherent_unit_base<U_first, U_args...>(),
+                                                                                                     exp(),
+                                                                                                     internal::Coherent_unit_base<>(),
+                                                                                                     Multiply())) {
   return {std::pow(u.base_value, fraction(exp()))};
 }
-} //namespace internal
-
 
 //
-// Template function for pow<std::ratio exp>(Unit<prefix, U>) returning the underlying "coherent" unit U::Base<a * exp, b * exp...>
+// sqrt for struct Unit and Coherent_unit<> or similar.
 //
-template<Ratio exp,
-         prefix pf,
-         typename U>
-requires std::derived_from<U, internal::Unit_fundament>
-auto pow(Unit<pf, U> u) noexcept {
-  return pow<exp>(static_cast<Unit<pf, U>::Base&>(u));
-}
-
-//
-// sqrt for struct Unit.
-//
-template<prefix pf,
-         typename U>
-requires std::derived_from<U, internal::Unit_fundament>
-auto sqrt(Unit<pf, U> u) noexcept {
-    return pow<std::ratio<1,2>>(u);
-}
-
-//
-// sqrt for struct Coherent_unit<> or similar.
-//
-template<typename... U_args,
-         template<typename...> typename U>
-requires std::derived_from<U<U_args...>, internal::Unit_fundament>
-auto sqrt(U<U_args...> u) noexcept {
+template<typename... U_args>
+auto sqrt(internal::Coherent_unit_base<U_args...> u) noexcept {
   return pow<std::ratio<1,2>>(u);
 }
 
@@ -506,13 +470,13 @@ auto sqrt(U<U_args...> u) noexcept {
 using Unary_op_func = TU_TYPE(*)(TU_TYPE);
 
 template<Unary_op_func op, prefix pf, typename U>
-requires (std::derived_from<U, internal::Unit_fundament> && Unit<pf, U>::is_scalar())
+requires (Unit<pf, U>::is_scalar())
 auto unop(const Unit<pf, U>& u){
   return internal::create_coherent_unit(typename U::Base(op(u.base_value)));
 }
 
 template<Unary_op_func op, typename U>
-requires (std::derived_from<U, internal::Unit_fundament> && U::is_scalar())
+requires (U::is_scalar())
 auto unop(const U& u){
   return U(op(u.base_value));
 }

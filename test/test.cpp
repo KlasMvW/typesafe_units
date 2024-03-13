@@ -340,8 +340,6 @@ int main() {
 
         Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> s12 = s1 - s2; 
         t.template assert<near<>>(-(TU_TYPE)10.0e-3f, s12.base_value, __LINE__);
-
-        auto s3 = s12 + s12;
       }
     );
 
