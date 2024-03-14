@@ -64,7 +64,7 @@ struct Multiply {
 } // namespace internal 
 
 //
-// Prefixes used to define units.
+// Prefixes used to define Units.
 //
 enum struct prefix {
   quecto = -30,
@@ -484,47 +484,47 @@ auto unop(const U& u){
 // 
 // Explicit definitions of coherent units.
 // 
-struct second : Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct metre : Coherent_unit<s<std::ratio<0>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct kilogram: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct ampere: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct kelvin: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<1>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct mole: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>{};
-struct candela: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>{};
+using second = Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using metre = Coherent_unit<s<std::ratio<0>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using kilogram = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using ampere = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using kelvin = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<1>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using mole = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>;
+using candela = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>;
 
 //
 // Derived units with special names
 //
-struct scalar : Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct hertz : Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct becquerel: Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct ohm: Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct siemens: Coherent_unit<s<std::ratio<3>>, m<std::ratio<-2>>, kg<std::ratio<-1>>, A<std::ratio<2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct farad: Coherent_unit<s<std::ratio<4>>, m<std::ratio<-2>>, kg<std::ratio<-1>>, A<std::ratio<2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct lumen: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>{};
-struct weber: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct gray: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct sievert: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct watt: Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct newton: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<1>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct lux: Coherent_unit<s<std::ratio<0>>, m<std::ratio<-2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>{};
-struct radian: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct joule: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct steradian: Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct katal: Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>{};
-struct pascal: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<-1>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct coulomb: Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct henry: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct tesla: Coherent_unit<s<std::ratio<-2>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct volt : Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+using scalar = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using hertz = Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using becquerel = Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using ohm = Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using siemens = Coherent_unit<s<std::ratio<3>>, m<std::ratio<-2>>, kg<std::ratio<-1>>, A<std::ratio<2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using farad = Coherent_unit<s<std::ratio<4>>, m<std::ratio<-2>>, kg<std::ratio<-1>>, A<std::ratio<2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using lumen = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>;
+using weber = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using gray = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using sievert = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using watt = Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using newton = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<1>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using lux = Coherent_unit<s<std::ratio<0>>, m<std::ratio<-2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>;
+using radian = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using joule = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using steradian = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using katal = Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>;
+using pascal = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<-1>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using coulomb = Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using henry = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-2>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using tesla = Coherent_unit<s<std::ratio<-2>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using volt = Coherent_unit<s<std::ratio<-3>>, m<std::ratio<2>>, kg<std::ratio<1>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
 
 //
 // Derived coherent units
 //
-struct metre_per_second : Coherent_unit<s<std::ratio<-1>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct second_squared : Coherent_unit<s<std::ratio<2>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct metre_cubed: Coherent_unit<s<std::ratio<0>>, m<std::ratio<3>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
-struct metre_squared: Coherent_unit<s<std::ratio<0>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>{};
+using metre_per_second = Coherent_unit<s<std::ratio<-1>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using second_squared = Coherent_unit<s<std::ratio<2>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using metre_cubed = Coherent_unit<s<std::ratio<0>>, m<std::ratio<3>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
+using metre_squared = Coherent_unit<s<std::ratio<0>>, m<std::ratio<2>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>;
 
 //
 // Define non coherent units
@@ -534,91 +534,54 @@ struct metre_squared: Coherent_unit<s<std::ratio<0>>, m<std::ratio<2>>, kg<std::
 // Time
 //
 
-struct minute : Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second> {
-  using Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second>::Base;
-};
-
-struct hour : Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute> {
-  using Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute>::Base;
-};
-
-struct day : Non_coherent_unit<(TU_TYPE)24.0, (TU_TYPE)0.0, hour> {
-  using Non_coherent_unit<(TU_TYPE)24.0, (TU_TYPE)0.0, hour>::Base;
-};
+using minute = Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second>; 
+using hour = Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute>;
+using day = Non_coherent_unit<(TU_TYPE)24.0, (TU_TYPE)0.0, hour>;
 
 //
 // Temperature
 //
 
-struct degree_Celsius : Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin> {
-  using Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>::Base;
-};
+using degree_Celsius = Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>;
 
 //
 // Mass
 //
 
-struct gram : Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, kilogram> {
-  using Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, kilogram>::Base;
-};
-
-struct tonne : Non_coherent_unit<(TU_TYPE)1000.0, (TU_TYPE)0.0, kilogram> {
-  using Non_coherent_unit<(TU_TYPE)1000.0, (TU_TYPE)0.0, kilogram>::Base;
-};
-
-struct dalton : Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram> {
-  using Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram>::Base;
-};
-
-struct unified_atomic_mass_unit : Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram> {
-  using Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram>::Base;
-};
+using gram = Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, kilogram>;
+using tonne = Non_coherent_unit<(TU_TYPE)1000.0, (TU_TYPE)0.0, kilogram>;
+using dalton = Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram>;
+using unified_atomic_mass_unit = Non_coherent_unit<(TU_TYPE)1.66053904020e-27, (TU_TYPE)0.0, kilogram>;
 
 //
 // Energy
 //
 
-struct electronvolt : Non_coherent_unit<(TU_TYPE)1.602176634e-19, (TU_TYPE)0.0, joule> {
-  using Non_coherent_unit<(TU_TYPE)1.602176634e-19, (TU_TYPE)0.0, joule>::Base;
-};
+using electronvolt = Non_coherent_unit<(TU_TYPE)1.602176634e-19, (TU_TYPE)0.0, joule>;
 
 //
 // Volume
 //
 
-struct litre : Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, metre_cubed> {
-  using Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, metre_cubed>::Base;
-};
+using litre = Non_coherent_unit<(TU_TYPE)0.001, (TU_TYPE)0.0, metre_cubed>;
 
 //
 // Plane- and phase angel
 //
 
-struct degree : Non_coherent_unit<(TU_TYPE)(PI/180.0), (TU_TYPE)0.0, radian> {
-  using Non_coherent_unit<(TU_TYPE)(PI/180.0), (TU_TYPE)0.0, radian>::Base;
-};
-
-struct arc_minute : Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, degree> {
-  using Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, degree>::Base;
-};
-
-struct arc_second : Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, arc_minute> {
-  using Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, arc_minute>::Base;
-};
+using degree = Non_coherent_unit<(TU_TYPE)(PI/180.0), (TU_TYPE)0.0, radian>;
+using arc_minute = Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, degree>;
+using arc_second = Non_coherent_unit<(TU_TYPE)(1/60.0), (TU_TYPE)0.0, arc_minute>;
 
 //
 // Area
 //
 
-struct hectare : Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, metre_squared> {
-  using Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, metre_squared>::Base;
-};
+using hectare = Non_coherent_unit<(TU_TYPE)(10000.0), (TU_TYPE)0.0, metre_squared>;
 
 //
 // Length
 //
 
-struct astronomical_unit : Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, metre> {
-  using Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, metre>::Base;
-};
+using astronomical_unit = Non_coherent_unit<(TU_TYPE)149597870700.0, (TU_TYPE)0.0, metre>;
 } // namespace tu
