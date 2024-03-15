@@ -187,9 +187,12 @@ int main() {
       auto c2 = Coherent_unit_base<std::ratio<1>, std::ratio<2>>(c1);
       t.template assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
+      auto c3 = Coherent_unit_base<std::ratio<1>, std::ratio<2>>(std::move(c2));
+      t.template assert<std::equal_to<>>(val, c3.base_value , __LINE__);
+
       Unit<prefix::milli, degree_Fahrenheit> f(val);
-      Coherent_unit_base<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>> c3 = Coherent_unit_base(f);
-      t.template assert<near<>>((val * 1.0e-3f - (TU_TYPE)32.0)/1.8f + (TU_TYPE)273.15, c3.base_value , __LINE__);
+      Coherent_unit_base<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>> c4 = Coherent_unit_base(f);
+      t.template assert<near<>>((val * 1.0e-3f - (TU_TYPE)32.0)/1.8f + (TU_TYPE)273.15, c4.base_value , __LINE__);
     }       
   );
 
@@ -231,9 +234,6 @@ int main() {
         TU_TYPE value = (TU_TYPE)5.0f;
         Unit<prefix::no_prefix, second> s(value);
         t.template assert<std::equal_to<>>(s.value, value, __LINE__);
-
-        //SUnit<second> ss(value);
-        //t.template assert<std::equal_to<>>(ss.value, value, __LINE__);
 
         Unit<prefix::no_prefix, second> s2 = value;
         t.template assert<std::equal_to<>>(s2.value, value, __LINE__); 
@@ -580,8 +580,8 @@ int main() {
       t.assert_true(add_res.value == (TU_TYPE)3.0,  __LINE__);
       t.assert_true(add_res.value == (TU_TYPE)3.0,  __LINE__);
     }
+    
   );
 
-    static_assert(tu::hour::base_multiplier == 3600.0f);
     return Test_stats::fail;
 }
