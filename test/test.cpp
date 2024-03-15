@@ -169,19 +169,30 @@ int main() {
     }
   );
 
+  Test<"is_ratio">(
+    []<typename T>(T &t) {
+      t.assert_true(is_ratio<std::ratio<1,2>>::value, __LINE__);
+      t.assert_false(is_ratio<int>::value, __LINE__);
+      t.assert_true(is_ratio_v<std::ratio<1,2>>, __LINE__);
+      t.assert_false(is_ratio_v<int>, __LINE__);
+    }
+  );
+
   Test<"Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE val = 3.5;
-
-      auto c1 = Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0>(val);
+      auto c1 = Coherent_unit_base<std::ratio<1>, std::ratio<2>>(val);
       t.template assert<std::equal_to<>>(val, c1.base_value, __LINE__);
           
-      auto c2 = Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0>(c1);
+      auto c2 = Coherent_unit_base<std::ratio<1>, std::ratio<2>>(c1);
       t.template assert<std::equal_to<>>(val, c2.base_value , __LINE__);
 
+      auto c3 = Coherent_unit_base<std::ratio<1>, std::ratio<2>>(std::move(c2));
+      t.template assert<std::equal_to<>>(val, c3.base_value , __LINE__);
+
       Unit<prefix::milli, degree_Fahrenheit> f(val);
-      Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0> c3 = Coherent_unit_base(f);
-      t.template assert<near<>>((val * 1.0e-3f - (TU_TYPE)32.0)/1.8f + (TU_TYPE)273.15, c3.base_value , __LINE__);
+      Coherent_unit_base<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>> c4 = Coherent_unit_base(f);
+      t.template assert<near<>>((val * 1.0e-3f - (TU_TYPE)32.0)/1.8f + (TU_TYPE)273.15, c4.base_value , __LINE__);
     }       
   );
 
@@ -212,9 +223,9 @@ int main() {
 
   Test<"create_coherent_unit">(
     []<typename T>(T &t){
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> cub;
+      Coherent_unit_base<std::ratio<-1>, std::ratio<2>, std::ratio<3>, std::ratio<4>, std::ratio<5>, std::ratio<6>, std::ratio<7>> cub;
       auto cu = internal::create_coherent_unit(cub);
-      t.assert_true(std::is_same<decltype(cu), Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)3.0>, A<(TU_TYPE)4.0>, K<(TU_TYPE)5.0>, mol<(TU_TYPE)6.0>, cd<(TU_TYPE)7.0>>>::value, __LINE__);
+      t.assert_true(std::is_same<decltype(cu), Coherent_unit<s<std::ratio<-1>>, m<std::ratio<2>>, kg<std::ratio<3>>, A<std::ratio<4>>, K<std::ratio<5>>, mol<std::ratio<6>>, cd<std::ratio<7>>>>::value, __LINE__);
     }
   );
 
@@ -246,11 +257,11 @@ int main() {
     Test<"is_scalar">(
       []<typename T>(T &t){
         TU_TYPE val = 0.0;
-        auto not_scalar = Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0>(val);
-        auto not_scalar2 = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)2.0>(val);
-        auto not_scalar3 = Coherent_unit_base<(TU_TYPE)1.0>(val);
-        auto scalar = Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0>(val);
-        auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>(val);
+        auto not_scalar = Coherent_unit_base<std::ratio<1>, std::ratio<2>>(val);
+        auto not_scalar2 = Coherent_unit_base<std::ratio<0>, std::ratio<2>>(val);
+        auto not_scalar3 = Coherent_unit_base<std::ratio<1>>(val);
+        auto scalar = Coherent_unit_base<std::ratio<0>, std::ratio<0>>(val);
+        auto scalar2 = Coherent_unit_base<std::ratio<0>>(val);
 
         t.assert_false(not_scalar.is_scalar(), __LINE__);
         t.assert_false(not_scalar2.is_scalar(), __LINE__);
@@ -289,8 +300,8 @@ int main() {
         auto value2 = 20000.0f;
         //Unit<prefix::milli, second> s1(value1);
         //Unit<prefix::micro, second> s2(value2);
-        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s1(value1);
-        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s2(value2);
+        Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> s1(value1);
+        Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> s2(value2);
 
         t.assert_true(s1 < s2, __LINE__);
         t.assert_false(s1 >= s2, __LINE__);
@@ -315,7 +326,7 @@ int main() {
         Unit<prefix::milli, second> s1(value1);
         Unit<prefix::micro, second> s2(value2);
 
-        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s12 = s1 + s2;
+        Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> s12 = s1 + s2;
         t.template assert<near<>>((TU_TYPE)30.0e-3f, s12.base_value, __LINE__);
       }
     );
@@ -327,10 +338,8 @@ int main() {
         Unit<prefix::milli, second> s1(value1);
         Unit<prefix::micro, second> s2(value2);
 
-        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> s12 = s1 - s2; 
+        Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> s12 = s1 - s2; 
         t.template assert<near<>>(-(TU_TYPE)10.0e-3f, s12.base_value, __LINE__);
-
-        auto s3 = s12 + s12;
       }
     );
 
@@ -340,7 +349,7 @@ int main() {
         TU_TYPE value2 = 20.0;
         Unit<prefix::milli, second> s1(value1);
         Unit<prefix::milli, ampere> a1(value2);
-        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> sa = s1 * a1;
+        Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> sa = s1 * a1;
         t.template assert<near<>>(sa.base_value, value1 * value2 * (TU_TYPE)1.0e-6f, __LINE__);
       }
     );
@@ -352,7 +361,7 @@ int main() {
         Unit<prefix::milli, second> s1(value1);
         Unit<prefix::milli, ampere> a1(value2);
 
-        Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)-1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> sa = s1 / a1;
+        Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<-1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> sa = s1 / a1;
         t.template assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
       }
     );
@@ -361,16 +370,16 @@ int main() {
       []<typename T>(T &t){
         TU_TYPE value1 = 10.0;
         TU_TYPE value2 = 20.0;
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s1(value1);
-        Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> a1(value2);
+        Coherent_unit_base<std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> s1(value1);
+        Coherent_unit_base<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<0>> a1(value2);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s1 * a1;
+        Coherent_unit_base<std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<0>> sa = s1 * a1;
         t.template assert<std::equal_to<>>(sa.base_value, value1 * value2, __LINE__);
       
         auto s2 = internal::create_coherent_unit(s1);
         auto a2 = internal::create_coherent_unit(a1);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa2 = s2 * a2;
+        Coherent_unit_base<std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<0>> sa2 = s2 * a2;
         t.template assert<std::equal_to<>>(sa2.base_value, value1 * value2, __LINE__);
       }
     );
@@ -379,66 +388,106 @@ int main() {
       []<typename T>(T &t){
         auto value1 = (TU_TYPE)10.0f;
         auto value2 = (TU_TYPE)20.0f;
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> s1(value1);
-        Coherent_unit_base<(TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> a1(value2);
+        Coherent_unit_base<std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> s1(value1);
+        Coherent_unit_base<std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<0>> a1(value2);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)-1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa = s1 / a1;
+        Coherent_unit_base<std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>> sa = s1 / a1;
         t.template assert<std::equal_to<>>(sa.base_value, value1 / value2, __LINE__);
       
         auto s2 = internal::create_coherent_unit(s1);
         auto a2 = internal::create_coherent_unit(a1);
 
-        Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)-1.0, (TU_TYPE)0.0, (TU_TYPE)0.0, (TU_TYPE)0.0> sa2 = s2 / a2;
+        Coherent_unit_base<std::ratio<1>, std::ratio<0>, std::ratio<0>, std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>> sa2 = s2 / a2;
         t.template assert<std::equal_to<>>(sa2.base_value, value1 / value2, __LINE__);
+      }
+    );
+
+    Test<"Coherent_unit and Coherent_unit_base binary operator: +">(
+      []<typename T>(T &t){
+        auto value1 = (TU_TYPE)10.0f;
+        auto value2 = (TU_TYPE)20.0f;
+        Coherent_unit_base<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> s1(value1);
+        Coherent_unit_base<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> a1(value2);
+
+        Coherent_unit_base<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> sa = s1 + a1;
+        t.template assert<std::equal_to<>>(sa.base_value, value1 + value2, __LINE__);
+      
+        auto s2 = internal::create_coherent_unit(s1);
+        auto a2 = internal::create_coherent_unit(a1);
+
+        Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> sa2 = s2 + a2;
+        t.template assert<std::equal_to<>>(sa2.base_value, value1 + value2, __LINE__);
+      }
+    );
+
+    Test<"Coherent_unit and Coherent_unit_base binary operator: -">(
+      []<typename T>(T &t){
+        auto value1 = (TU_TYPE)10.0f;
+        auto value2 = (TU_TYPE)20.0f;
+        Coherent_unit_base<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> s1(value1);
+        Coherent_unit_base<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> a1(value2);
+
+        Coherent_unit_base<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> sa = s1 - a1;
+        t.template assert<std::equal_to<>>(sa.base_value, value1 - value2, __LINE__);
+      
+        auto s2 = internal::create_coherent_unit(s1);
+        auto a2 = internal::create_coherent_unit(a1);
+
+        Coherent_unit<s<std::ratio<-1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> sa2 = s2 - a2;
+        t.template assert<std::equal_to<>>(sa2.base_value, value1 - value2, __LINE__);
       }
     );
 
     Test<"binary_op_args">(
       []<typename T>(T ){
         {
-          Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> l(2);
-          Coherent_unit_base<(TU_TYPE)6.0, (TU_TYPE)5.0, (TU_TYPE)4.0, (TU_TYPE)3.0, (TU_TYPE)2.0, (TU_TYPE)1.0, (TU_TYPE)0.0> r(3);
+          Coherent_unit_base<std::ratio<1>, std::ratio<2>, std::ratio<3>, std::ratio<4>, std::ratio<5>, std::ratio<6>, std::ratio<7>> l(2);
+          Coherent_unit_base<std::ratio<6>, std::ratio<5>, std::ratio<4>, std::ratio<3>, std::ratio<2>, std::ratio<1>, std::ratio<0>> r(3);
           Coherent_unit_base<> lr;
-          Coherent_unit_base<(TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0, (TU_TYPE)7.0> l_plus_r = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
-          Coherent_unit<s<(TU_TYPE)7.0>, m<(TU_TYPE)7.0>, kg<(TU_TYPE)7.0>, A<(TU_TYPE)7.0>, K<(TU_TYPE)7.0>, mol<(TU_TYPE)7.0>, cd<(TU_TYPE)7.0>> l_plus_r_c = binary_op_args(l, r, lr, std::plus<TU_TYPE>());
+          Coherent_unit_base<std::ratio<7>, std::ratio<7>, std::ratio<7>, std::ratio<7>, std::ratio<7>, std::ratio<7>, std::ratio<7>> l_plus_r = binary_op_args(l, r, lr, Plus());
+          Coherent_unit<s<std::ratio<7>>, m<std::ratio<7>>, kg<std::ratio<7>>, A<std::ratio<7>>, K<std::ratio<7>>, mol<std::ratio<7>>, cd<std::ratio<7>>> l_plus_r_c = binary_op_args(l, r, lr, Plus());
         }
     }
   );
 
   Test<"binary_op_args_num">(
     []<typename T>(T ) {
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> l;
+      Coherent_unit_base<std::ratio<1>, std::ratio<2>, std::ratio<3>, std::ratio<4>, std::ratio<5>, std::ratio<6>, std::ratio<7>> l;
       Coherent_unit_base<> empty;
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0, (TU_TYPE)14.0> r = binary_op_args_num(l, powexp<(TU_TYPE)2.0>(), empty, std::multiplies<TU_TYPE>());
-      Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)4.0>, kg<(TU_TYPE)6.0>, A<(TU_TYPE)8.0>, K<(TU_TYPE)10.0>, mol<(TU_TYPE)12.0>, cd<(TU_TYPE)14.0>> r2 = binary_op_args_num(l, powexp<(TU_TYPE)2.0>(), empty, std::multiplies<TU_TYPE>());
+      Coherent_unit_base<std::ratio<2>, std::ratio<4>, std::ratio<6>, std::ratio<8>, std::ratio<10>, std::ratio<12>, std::ratio<14>> r = binary_op_args_num(l, std::ratio<2>(), empty, Multiply());
+      Coherent_unit<s<std::ratio<2>>, m<std::ratio<4>>, kg<std::ratio<6>>, A<std::ratio<8>>, K<std::ratio<10>>, mol<std::ratio<12>>, cd<std::ratio<14>>> r2 = binary_op_args_num(l, std::ratio<2>(), empty, Multiply());
     }
   );
 
   Test<"pow Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE value = 3.0;
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> r(value);
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0, (TU_TYPE)14.0> l = pow<(TU_TYPE)2.0>(r);
+      Coherent_unit_base<std::ratio<1>, std::ratio<2>, std::ratio<3>, std::ratio<4>, std::ratio<5>, std::ratio<6>, std::ratio<7>> r(value);
+      Coherent_unit_base<std::ratio<2>, std::ratio<4>, std::ratio<6>, std::ratio<8>, std::ratio<10>, std::ratio<12>, std::ratio<14>> l = pow<std::ratio<2>>(r);
       t.template assert<std::equal_to<>>((TU_TYPE)pow(value, (TU_TYPE)2.0f), l.base_value, __LINE__);
 
-      Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)4.0>, kg<(TU_TYPE)6.0>, A<(TU_TYPE)8.0>, K<(TU_TYPE)10.0>, mol<(TU_TYPE)12.0>, cd<(TU_TYPE)14.0>> a = pow<(TU_TYPE)2.0>(r);
+      Coherent_unit<s<std::ratio<2>>, m<std::ratio<4>>, kg<std::ratio<6>>, A<std::ratio<8>>, K<std::ratio<10>>, mol<std::ratio<12>>, cd<std::ratio<14>>> a = pow<std::ratio<2>>(r);
     }
   );
 
-    Test<"pow Unit">(
+  Test<"pow Unit">(
     []<typename T>(T &t) {
       TU_TYPE value1 = (TU_TYPE)20.0f;
+      Unit<prefix::milli, hertz> h1(value1);
       Unit<prefix::milli, second> s1(value1);
-      Coherent_unit<s<(TU_TYPE)2.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> l = pow<(TU_TYPE)2.0>(s1);
-      t.template assert<near<>>(l.base_value, (TU_TYPE)pow(value1, (TU_TYPE)2.0) * (TU_TYPE)1.0e-6f, __LINE__);
+      Coherent_unit<s<std::ratio<2>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> l1 = pow<std::ratio<2>>(s1);
+      t.template assert<near<>>(l1.base_value, (TU_TYPE)pow(value1, (TU_TYPE)2.0) * (TU_TYPE)1.0e-6f, __LINE__);
+    
+      Coherent_unit<s<std::ratio<-2>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> l2 = pow<std::ratio<2>>(h1);
+      t.template assert<near<>>(l2.base_value, (TU_TYPE)pow(value1, (TU_TYPE)2.0) * (TU_TYPE)1.0e-6f, __LINE__);
     }
   );
 
     Test<"sqrt Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE value = 4.0;
-      Coherent_unit_base<(TU_TYPE)2.0, (TU_TYPE)4.0, (TU_TYPE)6.0, (TU_TYPE)8.0, (TU_TYPE)10.0, (TU_TYPE)12.0, (TU_TYPE)14.0> r(value);
-      Coherent_unit_base<(TU_TYPE)1.0, (TU_TYPE)2.0, (TU_TYPE)3.0, (TU_TYPE)4.0, (TU_TYPE)5.0, (TU_TYPE)6.0, (TU_TYPE)7.0> l = sqrt(r);
+      Coherent_unit_base<std::ratio<2>, std::ratio<4>, std::ratio<6>, std::ratio<8>, std::ratio<10>, std::ratio<12>, std::ratio<14>> r(value);
+      Coherent_unit_base<std::ratio<1>, std::ratio<2>, std::ratio<3>, std::ratio<4>, std::ratio<5>, std::ratio<6>, std::ratio<7>> l = sqrt(r);
       t.template assert<std::equal_to<>>(std::sqrt(value), l.base_value, __LINE__);
     }
   );
@@ -447,7 +496,7 @@ int main() {
     []<typename T>(T &t) {
       TU_TYPE value1 = 20.0;
       Unit<prefix::milli, second> s1(value1);
-      Coherent_unit<s<(TU_TYPE)0.5>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> l =  sqrt(s1);
+      Coherent_unit<s<std::ratio<1,2>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> l =  sqrt(s1);
       t.template assert<near<>>(l.base_value, std::sqrt(value1) * std::pow((TU_TYPE)1e-3, (TU_TYPE)0.5), __LINE__);
     }
   );
@@ -455,12 +504,12 @@ int main() {
   Test<"unop Coherent_unit_base">(
     []<typename T>(T &t) {
       TU_TYPE val = 0.0;
-      auto scalar2 = Coherent_unit_base<(TU_TYPE)0.0>((TU_TYPE)tu::PI/2.0);
-      auto scalar = Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>();
+      auto scalar2 = Coherent_unit_base<std::ratio<0>>((TU_TYPE)tu::PI/2.0);
+      auto scalar = Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>();
       t.template assert<near<>>(unop<std::sin>(scalar).base_value, (TU_TYPE)0.0, __LINE__);
       t.template assert<near<>>(unop<std::sin>(scalar2).base_value, (TU_TYPE)1.0, __LINE__);
       
-      Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> scalar3 = unop<std::sin>(scalar);
+      Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> scalar3 = unop<std::sin>(scalar);
 
       // lambda is globally defined to compile with gcc 
       auto new_scalar_2 = unop<lambda>(scalar);
@@ -478,7 +527,7 @@ int main() {
        
       Unit<prefix::no_prefix, degree> new_scalar_unit = unop<std::sin>(scalar_unit);
 
-      Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>> scalar3 = unop<std::sin>(scalar_unit);
+      Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>> scalar3 = unop<std::sin>(scalar_unit);
 
       t.template assert<near<>>(unop<std::sin>(scalar_unit).base_value, (TU_TYPE)1.0, __LINE__);
       t.template assert<near<>>(unop<std::sin>(scalar_unit2).base_value, (TU_TYPE)0.0, __LINE__);
@@ -504,30 +553,15 @@ int main() {
          }
   );
 
-  Test<"powexp">(
-    []<typename T>(T) {
-           static_assert(powexp<(TU_TYPE)-2.0>::exp == -2);
-           static_assert(powexp<(TU_TYPE)-1.0>::exp == -1);
-           static_assert(powexp<(TU_TYPE)0.0>::exp == 0);
-           static_assert(powexp<(TU_TYPE)1.0>::exp == 1);
-           static_assert(powexp<(TU_TYPE)2.0>::exp == 2);       
-           static_assert(powexp<(TU_TYPE)-2.0>::exp != 1);
-           static_assert(powexp<(TU_TYPE)-1.0>::exp != 1);
-           static_assert(powexp<(TU_TYPE)0.0>::exp != 1);
-           static_assert(powexp<(TU_TYPE)1.0>::exp != 0);
-           static_assert(powexp<(TU_TYPE)2.0>::exp != 1);
-         }
-  );
-
   Test<"Coherent units definition">(
     []<typename T>(T) {
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, second>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, metre>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, kilogram>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, ampere>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)1.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>, kelvin>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)1.0>, cd<(TU_TYPE)0.0>>, mole>::value);
-           static_assert(std::is_base_of<Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)1.0>>, candela >::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<1>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>, second>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<0>>, m<std::ratio<1>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>, metre>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<1>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>, kilogram>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<1>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<0>>>, ampere>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<1>>, mol<std::ratio<0>>, cd<std::ratio<0>>>, kelvin>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<1>>, cd<std::ratio<0>>>, mole>::value);
+           static_assert(std::is_base_of<Coherent_unit<s<std::ratio<0>>, m<std::ratio<0>>, kg<std::ratio<0>>, A<std::ratio<0>>, K<std::ratio<0>>, mol<std::ratio<0>>, cd<std::ratio<1>>>, candela >::value);
          }
   );
 
@@ -546,8 +580,8 @@ int main() {
       t.assert_true(add_res.value == (TU_TYPE)3.0,  __LINE__);
       t.assert_true(add_res.value == (TU_TYPE)3.0,  __LINE__);
     }
+    
   );
 
-    static_assert(tu::hour::base_multiplier == 3600.0f);
     return Test_stats::fail;
 }

@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Powers are now rational numbers and not floating point values.
+
 ### Added
 
 - New coherent unit `scalar` that can be used in binary operations with units.
 - New constructor `Coherent_unit(TU_TYPE)` so that a coherent unit can be created with value.
+- New prefixes `quecto`, `ronto`, `ronna`, `quetta`.
 
 ### Fixed
 
