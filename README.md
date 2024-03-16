@@ -13,13 +13,10 @@ Unit<prefix::no_prefix, coulomb> c = s * a;
 std::cout << c.value << std::endl; // prints 5e-08
 ```
 
-If you need a non-SI unit you define it by declaring a simple struct. This is how you would define the unit
-`degree_Fahrenheit`:
+If you need a non-SI unit you define it by declaring a Non_coherent_unit. This is how you would define the unit `degree_Fahrenheit`:
 
 ```c++
-  struct degree_Fahrenheit : Non_coherent_unit<1.0f / 1.8f, -32.0f, degree_Celsius> {
-    using Non_coherent_unit<1.0f / 1.8f, -32.0f, degree_Celsius>::Base;
-  };
+using degree_Fahrenheit = Non_coherent_unit<1.0f / 1.8f, -32.0f, degree_Celsius>;
 ```
 
 You can use the new unit like any other unit already defined in TU:
@@ -71,9 +68,7 @@ target_compile_definitions(my_target PRIVATE TU_TYPE=double)
 
 ## Requirements
 
-TU requires a c++20 compliant compiler. Specifically TU utilizes float non-type template arguments. 
-
-For the test suite that comes with TU to work, your system needs to have support for ANSI escape sequences since the output uses colours. This should work on fairly recent Windows 10 system, linux and macOS. It might be a problem on Windows 7 though. If you find that this is a showstopper for you please let us know. If enough people run TU on systems that does not have support for ANSI escape sequences, we will remove it. 
+TU requires a c++20 compliant compiler. For the test suite that comes with TU to work, your system needs to have support for ANSI escape sequences since the output uses colours. This should work on fairly recent Windows 10 system, linux and macOS. It might be a problem on Windows 7 though. If you find that this is a showstopper for you please let us know. If enough people run TU on systems that does not have support for ANSI escape sequences, we will remove it. 
 
 ## Tested compilers
 
@@ -119,14 +114,14 @@ TU comes with its own test suite. It does not rely on any external testing tool.
 The following instruction assumes that you do an out of source build in a directory under the repository root.
 
 ```bat
-cmake .. -G <generator>
-cmake --build . --config <build type>  
+> cmake .. -G <generator>
+> cmake --build . --config <build type>  
 ```
 
 Run the test suite
 
-```
-ctest -V
+```bat
+> ctest -V
 ```
 
 The test suite test TU for both float and double as underlying datatype.
@@ -135,55 +130,97 @@ The test suite test TU for both float and double as underlying datatype.
 
 The aim of TU is to be
 
-* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau International des Poids et Mesures (BIPM). See [link to bimp.org](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
+* compliant to definitions and guides of official bodies. For SI units, TU aims for compliance with the definitions issued by Bureau International des Poids et Mesures (BIPM). See [bimp.org](https://www.bipm.org/documents/20126/41483022/SI-Brochure-9.pdf) for details.
 * (type)safe
 * easy to use
 * light weight
 
 ## License
 
-TU is released under the MIT license. https://mit-license.org/
+TU is released under the [MIT](https://mit-license.org/) license.
 
 ## Detailed description
+
+### Spelling
+
+TU uses official spelling of units. Therefore TU uses `litre` and `metre` and not *liter* and *meter*. 
 
 ### Types
 
 The intrinsic data type used by TU is defined in the preprocessor macro `TU_TYPE`.
-`TU_TYPE` can be `float` or `double`. All values and floating point template argumets will have the type defined by `TU_TYPE`.
+`TU_TYPE` can be `float` or `double`. All values will have the type defined by `TU_TYPE`.
 
 ### Namespaces
+
 The main namespace of TU is `tu`.
-Functionality inside `tu` that is located in the namespace `internal` is not public and should only be used implicitly by public classes and methods.
+Functionality inside `tu` that is located in the namespace `internal` is not public and should only be used implicitly through public classes and methods.
  
 ### Classes and structs
 
-#### s, m, kg, A, K, mol, cd
+The TU unit system is built on five structs: `Base_unit`, `Coherent_unit`, `Non_coherent_unit`, `Unit` and the enum struct `prefix`.
 
-These are the base units with floating point template arguments that determins the power of the base unit.
-The base units are used to build `Coherent_unit`s
+The illustration below shows how the different structs are used to create other structs. Structs at lower level uses structs on higher level in their construction.
 
-The definition of each base unit looks as follows where the unit is denoted `X`.
-
-```c++
-template<TU_TYPE p>
-struct X : internal::Base_unit<p>{};
+```
+prefix   Base_unit
+|        |
+|        Coherent_unit
+|        |  |
+|        |  Non_coherent_unit
+|        |  |
+|        |  Non_coherent_unit
+|        |  |
+|--------Unit
 ```
 
-The base unit `per_second` can be declared through
+With words the above would be written:
+
+* `Coherent_unit` is built from `Base_unit`(s)
+* `Non_coherent_unit` is built from a `Coherent_unit` or another `Non_coherent_unit`
+* `Unit` is built from a `prefix` and a `Coherent_unit` or a `Non_coherent_unit`.
+
+The main entity that a typical user of TU will interact with is the `Unit` struct. When extending the unit system, interaction with other structs is required. At some occasions interaction with `Coherent_unit`s is necessary.
+
+#### Base_unit
+
+Base units are the smallest building blocks in the types system. These define powers of the seven basic units `s`, `m`, `kg`, `A`, `K`, `mol` and `cd`. Base units are used to build up `Coherent_unit`s.
+
+The definition of base units are done through inheritance of the `Base_unit` struct and looks as follows where the base unit is denoted `X`.
 
 ```c++
-s<(TU_TYPE)-1.0f>;
+template<Ratio p>
+struct X : internal::Base_unit<p>{};
+```
+The definition of `s` (second) to some power `p` then looks as
+
+```c++
+template<Ratio p>
+struct s : internal::Base_unit<p>{};
+```
+
+where Ratio is of type std:ratio
+
+and a base unit `per_second` can be declared through
+
+```c++
+s<std::ratio<-1>;
 ```
 
 #### Coherent_unit
 
-The `Coherent_unit` struct represents a unit that is a multiple of all base units: s, m, kg, A, K, mol and cd.
+The `Coherent_unit` struct represents a unit that is a multiple of all base units: s, m, kg, A, K, mol and cd with individual powers.
 A specific coherent unit should be defined by inheriting from a `Coherent_unit`
 
 The specific coherent unit `newton` is defined as
 
 ```c++
-struct newton: Coherent_unit<s<(TU_TYPE)-2.0>, m<(TU_TYPE)1.0>, kg<(TU_TYPE)1.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+using newton = Coherent_unit<s<std::ratio<-2>
+                            ,m<std::ratio<1>
+                            ,kg<std::ratio<1>
+                            ,A<std::ratio<0>
+                            ,K<std::ratio<0>
+                            ,mol<std::ratio<0>
+                            ,cd<std::ratio<0>>;
 ```
 
 i.e. it has the unit `kg m / s^2`
@@ -193,38 +230,37 @@ Note that computations using seconds should use the `Coherent_unit` `second` and
 `second` is defined as
 
 ```c++
-struct second: Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>{};
+using second = Coherent_unit<s<std::ratio<1>
+                            ,m<std::ratio<0>
+                            ,kg<std::ratio<0>
+                            ,A<std::ratio<0>
+                            ,K<std::ratio<0>
+                            ,mol<std::ratio<0>
+                            ,cd<std::ratio<0>>;
 ```
+
 All base units are defined as `Coherent_unit`s in similar fashion.
 
 #### Non_coherent_unit
 
 A `Non_coherent_unit` is a unit that is scaled or shifted relative to a base unit. The value of the `Non_coherent_unit` is related to the value of the base unit through `v = a * b + c` where `v` is the value of the `Non_coherent_unit`, `b` is the value of the base unit. `a` and `c` are the scaling and shift respectively.
 
-Example of `Non_coherent_unit`s are `minute`, `hour` and `degree_Celcius`.
+Examples of `Non_coherent_unit`s are `minute`, `hour` and `degree_Celcius`.
 
 A `Non_coherent_unit` is a templated struct that has the scaling factor, the shift and the base unit as template parameters.
 
 `minute` and `hour` are defined by
 
 ```c++
-struct minute : Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second> {
-  using Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second>::Base;
-};
+using minute = Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, second>;
 
-struct hour : Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute> {
-  using Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute>::Base;
-};
+struct hour = Non_coherent_unit<(TU_TYPE)60.0, (TU_TYPE)0.0, minute>;
 ```
 `degree_Celsius` is defined by
 
 ```c++
-struct degree_Celsius : Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin> {
-  using Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>::Base;
-};
+struct degree_Celsius = Non_coherent_unit<(TU_TYPE)1.0, (TU_TYPE)273.15, kelvin>;
 ```
-
-The `using` statement is of internal concern only. If new `Non_coherent_unit`s are created, just follow the pattern.
 
 #### Unit
 
@@ -263,6 +299,8 @@ std::cout << ms.value << " " << mi.value << std::endl; // prints 5.0 8.3333e-5
 
 The following prefixes are defined and can be used when creating `Unit`s.
 
+* quecto = 10<sup>-30</sup>
+* ronto = 10<sup>-27</sup>
 * yocto = 10<sup>-24</sup>
 * zepto = 10<sup>-21</sup>
 * atto = 10<sup>-18</sup>
@@ -284,6 +322,8 @@ The following prefixes are defined and can be used when creating `Unit`s.
 * exa = 10<sup>18</sup>
 * zetta = 10<sup>21</sup>
 * yotta = 10<sup>24</sup>
+* ronna = 10<sup>27</sup>
+* quetta = 10<sup>30</sup>
 
 ### Functions
 
@@ -311,7 +351,7 @@ std::cout << tu::convert_to<prefix::milli,Second>(m).value << std::endl; // prin
 ```
 ### Operators
 
-#### + - 
+#### + -
 
 TU supports the binary operators `+` and `-` (addition and subtraction) on units. Conversions are handled under the hood of TU.
 
@@ -333,14 +373,20 @@ std::cout << cu.base_value << std::endl; // prints 3900.0
 This is because TU does not know what `Unit` to construct from the operation. TU falls back on the fundamental `Coherent_unit`s and `cu` will be of type
 
 ```c++
-Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>;
+Coherent_unit<s<std::ratio<1>
+             ,m<std::ratio<0>
+             ,kg<std::ratio<0>
+             ,A<std::ratio<0>
+             ,K<std::ratio<0>
+             ,mol<std::ratio<0>
+             ,cd<std::ratio<0>>;
 ```
 
 Note also that `Coherent_unit` does not have a `value` member but only a `base_value`
 
 If we would like a specific `Unit` representation of the operation, we have to explicitly state the `Unit` as in the first example and the result of the operation will be used to construct the desired `Unit`.
 
-Applying the `+` and `-` operators on `Unit`s that don't have the same underlying `Coherent_unit` will result in compilation failure e.g. it is not possible to add to variables of type `newton` and `second`. 
+Applying the `+` and `-` operators on `Unit`s that don't have the same underlying `Coherent_unit` will result in compilation failure e.g. it is not possible to add two variables of type `newton` and `second`. 
 
 #### \* /
 
@@ -365,7 +411,13 @@ std::cout << cu.base_value << std::endl; // prints 5e-08
 This is because TU does not know what `Unit` to construct from the operation. TU falls back on the fundamental `Coherent_units` and `cu` will be of type
 
 ```c++
-Coherent_unit<s<(TU_TYPE)1.0>, m<(TU_TYPE)0.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)1.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>;
+Coherent_unit<s<std::ratio<1>
+             ,m<std::ratio<0>
+             ,kg<std::ratio<0>
+             ,A<std::ratio<1>
+             ,K<std::ratio<0>
+             ,mol<std::ratio<0>
+             ,cd<std::ratio<0>>;
 ```
 
 Note also that `Coherent_unit` does not have a `value` member but only a `base_value`
@@ -391,21 +443,27 @@ TU implements a `pow` operator for units.
 
 ```c++
 Unit<prefix::milli, metre> me(5.0f);
-auto ch = pow<2.0f>(me);
+auto ch = pow<std::ratio<2>>(me);
 std::cout << ch.base_value << std::endl; // prints 2.5 * 10^-5
 ```
 
 `ch` will be of type
 
 ```c++
-Coherent_unit<s<(TU_TYPE)0.0>, m<(TU_TYPE)2.0>, kg<(TU_TYPE)0.0>, A<(TU_TYPE)0.0>, K<(TU_TYPE)0.0>, mol<(TU_TYPE)0.0>, cd<(TU_TYPE)0.0>>;
+Coherent_unit<s<std::ratio<0>
+             ,m<std::ratio<2>
+             ,kg<std::ratio<0>
+             ,A<std::ratio<0>
+             ,K<std::ratio<0>
+             ,mol<std::ratio<0>
+             ,cd<std::ratio<0>>;
 ```
 
 To construct a `Unit` directly we could do
 
 ```c++
 Unit<prefix::milli, metre> me(5.0f);
-Unit<prefix::milli, metre_squared> m2 = pow<2.0f>(me);
+Unit<prefix::milli, metre_squared> m2 = pow<std::ratio<2>>(me);
 std::cout << m2.value << std::endl; // prints 2.5 * 10^-2
 ```
 
@@ -414,7 +472,7 @@ Note that `Unit<prefix::milli, metre_squared>` means 10<sup>-3</sup>m<sup>2
 
 To the unit </sup>(mm)<sup>2</sup> is equivalent to `Unit<prefix::micro, metre_squared>`
 
-Note that the power is not restricted to integers.
+Note that the power is restricted to std::ratio.
 
 #### sqrt
 
@@ -426,21 +484,28 @@ sqrt(unit).
 is equivalent to 
 
 ```c++
-pow<0.5>(unit).
+pow<std::ratio<1,2>>(unit).
 ```
-
-Not that since TU uses floating point powers, it is not guaranteed that applying first `pow<2.0>` and the `sqrt` on a unit would yield the exact unit back.
 
 #### unop
 
 TU supports unary operations on scalar units i.e. units where all basic unit powers are `0`. Examples of scalar units is `radian` and `degree`.
 
 `unop` is a template function that applies any unary function that takes a TU_TYPE
-and returns a TU_TYPE to the underlying value of the unit if it is a scalar unit. The function returns a scalar Coherent_unit initialized with the value of the performed operation. This makes it possible to operate with any unary function (subjected to the restrictions above) from the standard library on a Unit or Coherent_unit. unop can take both unary functions and lambda expressions as template parameter. 
+and returns a TU_TYPE to the underlying **base_value** of the unit if it is a scalar unit. The function returns a scalar Coherent_unit initialized with the value of the performed operation. This makes it possible to operate with any unary function (subjected to the restrictions above) from the standard library on a Unit or Coherent_unit. unop can take both unary functions and lambda expressions as template parameter. 
 
 ```c++
-Unit<prefix::no_prefix, degree> angle(90);
-std::cout << unop<std::sin>(angle).base_value; // prints 1
+Unit<prefix::no_prefix, degree> angle_d(90);
+std::cout << unop<std::sin>(angle_d).base_value; // prints 1
+
+Unit<prefix::no_prefix, radian> angle_r(PI);
+std::cout << unop<std::sin>(angle_r).base_value; // prints 1
+
+constexpr auto lambda = [](TU_TYPE v) {
+  return v + (TU_TYPE)1.0;
+};
+
+std::cout << unop<lambda>(angle_d).base_value; // prints 2.5708 i.e. PI/2.0 + 1.0
 ```
 
 Note that `unop` operates on the `base_value` on a unit. In the case of `degree` the base unit is `radian` (90 degrees == pi/2 radians) and the `std::sin` function yields the correct result.
@@ -488,8 +553,7 @@ Note that `unop` operates on the `base_value` on a unit. In the case of `degree`
 * metre_cubed
 * metre_squared
 
-### Non coherent units
-
+### Non-coherent units
 
 #### Time
 
