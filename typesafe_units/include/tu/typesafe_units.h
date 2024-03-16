@@ -21,6 +21,10 @@ constexpr TU_TYPE PI = std::numbers::pi_v<TU_TYPE>;
 
 namespace internal {
 
+//
+// Define concept for restricting template arguments to std::ratio
+//
+
 template <typename T>
 struct is_ratio : std::false_type {};
 
@@ -33,12 +37,14 @@ inline constexpr bool is_ratio_v = is_ratio<T>::value;
 template<typename T>
 concept Ratio = is_ratio_v<T>;
 
-//}
-
 template<Ratio R>
 constexpr TU_TYPE fraction(R) {
   return static_cast<TU_TYPE>(R::num) / static_cast<TU_TYPE>(R::den);
 }
+
+//
+// Wrapers for binary operations on std::ratio
+//
 
 struct Plus {
   template<Ratio A, Ratio B>
@@ -60,7 +66,6 @@ struct Multiply {
     return {};
   }
 };
-
 } // namespace internal 
 
 //
@@ -115,6 +120,9 @@ constexpr TU_TYPE pow10() noexcept {
   }
 }
 
+//
+// Check if all provided template arguments are std::ratio<0> 
+//
 template<Ratio U_first, Ratio... U_args>
 constexpr bool are_args_zero() noexcept {
   if constexpr (U_first::num != 0) {
@@ -370,6 +378,9 @@ auto operator - (internal::Coherent_unit_base<Args...> l, internal::Coherent_uni
 }
 
 namespace internal {
+//
+// Binary operations on all std::ratio powers of two Coherent_unit_base objects. 
+//
 template<Ratio lf,
          Ratio... l_args,
          Ratio rf,
